@@ -5,32 +5,12 @@ import { Button } from "@/components/ui/button";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
-
-// Video overlay configuration per event
-const EVENT_VIDEO_OVERLAYS: Partial<Record<EventThemeType, string>> = {
-  "ramadan": "linear-gradient(to bottom, rgba(5, 46, 22, 0.92), rgba(20, 83, 45, 0.88))",
-  "eid-fitr": "linear-gradient(to bottom, rgba(22, 101, 52, 0.88), rgba(101, 163, 13, 0.85))",
-  "eid-adha": "linear-gradient(to bottom, rgba(120, 53, 15, 0.9), rgba(180, 83, 9, 0.85))",
-  "maulid-nabi": "linear-gradient(to bottom, rgba(5, 46, 22, 0.9), rgba(101, 163, 13, 0.85))",
-  "isra-miraj": "linear-gradient(to bottom, rgba(30, 27, 75, 0.92), rgba(49, 46, 129, 0.88))",
-  "islamic-new-year": "linear-gradient(to bottom, rgba(120, 53, 15, 0.9), rgba(180, 83, 9, 0.85))",
-  "new-year": "linear-gradient(to bottom, rgba(30, 27, 75, 0.9), rgba(88, 28, 135, 0.85))",
-  "independence-day": "linear-gradient(to bottom, rgba(127, 29, 29, 0.88), rgba(185, 28, 28, 0.85))",
-  "heroes-day": "linear-gradient(to bottom, rgba(127, 29, 29, 0.9), rgba(120, 53, 15, 0.85))",
-  "kartini-day": "linear-gradient(to bottom, rgba(120, 53, 15, 0.85), rgba(190, 18, 60, 0.8))",
-  "christmas": "linear-gradient(to bottom, rgba(21, 94, 117, 0.88), rgba(22, 101, 52, 0.85))",
-  "halloween": "linear-gradient(to bottom, rgba(30, 27, 30, 0.95), rgba(88, 28, 60, 0.9))",
-  "valentine": "linear-gradient(to bottom, rgba(136, 19, 55, 0.88), rgba(190, 18, 60, 0.85))",
-  "earth-day": "linear-gradient(to bottom, rgba(5, 46, 22, 0.88), rgba(21, 94, 117, 0.85))",
-  "environment-day": "linear-gradient(to bottom, rgba(5, 46, 22, 0.88), rgba(22, 101, 52, 0.85))",
-};
-
-const DEFAULT_OVERLAY = "rgba(0, 0, 0, 0.9)";
+import EventHeroBackground from "./EventHeroBackground";
 
 const Hero = () => {
   const { t, language } = useLanguage();
   const { currentEventTheme, eventInfo } = useEventTheme();
-  const { videoQuality, shouldReduceAnimations } = usePerformance();
+  const { shouldReduceAnimations } = usePerformance();
   const [displayedText, setDisplayedText] = useState("");
   const [videoLoaded, setVideoLoaded] = useState(false);
 
@@ -72,11 +52,21 @@ const Hero = () => {
     return () => clearInterval(typingInterval);
   }, [currentRoleIndex]);
 
-  // Get event-specific greeting
+  // Get event-specific greeting with year for New Year
   const getEventGreeting = () => {
     if (currentEventTheme === "default" || !eventInfo?.greeting) {
       return t("hero.greeting");
     }
+    
+    // Special handling for New Year - show the year
+    if (currentEventTheme === "new-year") {
+      const year = new Date().getFullYear();
+      if (language === "id") {
+        return `Selamat Tahun Baru ${year}`;
+      }
+      return `Happy New Year ${year}`;
+    }
+    
     return language === "id" ? (eventInfo.greetingId || eventInfo.greeting) : eventInfo.greeting;
   };
 
@@ -86,54 +76,107 @@ const Hero = () => {
   // Check if current theme is a celebration event
   const isCelebrationTheme = ["new-year", "independence-day", "valentine", "christmas", "halloween", "eid-fitr"].includes(currentEventTheme);
 
-  // Get video overlay based on current event
-  const videoOverlay = useMemo(() => {
-    return EVENT_VIDEO_OVERLAYS[currentEventTheme] || DEFAULT_OVERLAY;
-  }, [currentEventTheme]);
+  // Get event-specific icon
+  const getEventIcon = () => {
+    switch (currentEventTheme) {
+      case "ramadan":
+      case "eid-fitr":
+      case "eid-adha":
+      case "maulid-nabi":
+      case "isra-miraj":
+      case "islamic-new-year":
+        return "☪";
+      case "christmas":
+        return "🎄";
+      case "new-year":
+        return "🎆";
+      case "valentine":
+        return "💕";
+      case "halloween":
+        return "🎃";
+      case "independence-day":
+        return "🇮🇩";
+      case "earth-day":
+      case "environment-day":
+        return "🌍";
+      case "mothers-day":
+        return "💐";
+      case "fathers-day":
+        return "👔";
+      case "heroes-day":
+        return "🎖️";
+      case "kartini-day":
+        return "🌸";
+      case "youth-pledge":
+        return "✊";
+      case "labor-day":
+        return "⚒️";
+      default:
+        return null;
+    }
+  };
 
-  // Determine if video should be shown
-  const showVideo = videoQuality !== "disabled";
+  // Get button styles based on event
+  const getButtonStyles = useMemo(() => {
+    const isEventActive = currentEventTheme !== "default";
+    
+    if (currentEventTheme === "independence-day") {
+      return {
+        primary: "bg-red-600 hover:bg-red-700 text-white border-red-600",
+        secondary: "border-white text-white hover:bg-white/20",
+      };
+    }
+    
+    if (currentEventTheme === "new-year") {
+      return {
+        primary: "bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-600 hover:to-yellow-500 text-black border-amber-500",
+        secondary: "border-amber-400 text-amber-300 hover:bg-amber-400/20",
+      };
+    }
+    
+    if (isIslamicTheme) {
+      return {
+        primary: "bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white border-emerald-600",
+        secondary: "border-emerald-400 text-emerald-300 hover:bg-emerald-400/20",
+      };
+    }
+    
+    if (currentEventTheme === "christmas") {
+      return {
+        primary: "bg-gradient-to-r from-red-600 to-green-600 hover:from-red-700 hover:to-green-700 text-white border-red-600",
+        secondary: "border-white text-white hover:bg-white/20",
+      };
+    }
+    
+    if (currentEventTheme === "valentine" || currentEventTheme === "mothers-day") {
+      return {
+        primary: "bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white border-pink-500",
+        secondary: "border-pink-400 text-pink-300 hover:bg-pink-400/20",
+      };
+    }
+    
+    // Default styles
+    return {
+      primary: "bg-primary hover:bg-primary/90",
+      secondary: "border-primary text-primary hover:bg-primary/10",
+    };
+  }, [currentEventTheme, isIslamicTheme]);
+
+  const eventIcon = getEventIcon();
 
   return (
     <section
       id="home"
       className="relative min-h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Video with Event-Aware Overlay */}
-      <div className="absolute inset-0 z-0">
-        {showVideo ? (
-          <>
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              onLoadedData={() => setVideoLoaded(true)}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${
-                videoLoaded ? "opacity-100" : "opacity-0"
-              }`}
-            >
-              <source src="/hero-video.mp4" type="video/mp4" />
-            </video>
-            {/* Dynamic event overlay */}
-            <motion.div
-              className="absolute inset-0"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5 }}
-              style={{ background: videoOverlay }}
-              key={currentEventTheme}
-            />
-          </>
-        ) : (
-          /* Fallback for disabled video */
-          <div className="absolute inset-0 bg-background" />
-        )}
-      </div>
+      {/* Event-Aware Background */}
+      <EventHeroBackground 
+        onVideoLoaded={() => setVideoLoaded(true)}
+      />
 
-      {/* Animated Grid */}
-      {!shouldReduceAnimations && (
-        <div className="absolute inset-0 z-0 opacity-10">
+      {/* Animated Grid - only in default mode */}
+      {currentEventTheme === "default" && !shouldReduceAnimations && (
+        <div className="absolute inset-0 z-[1] opacity-10">
           <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-secondary/5"></div>
           <div
             className="absolute inset-0"
@@ -161,41 +204,77 @@ const Hero = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
-            className={`text-primary text-base sm:text-lg md:text-xl font-poppins font-medium mb-4 ${
+            className={`text-base sm:text-lg md:text-xl font-poppins font-medium mb-4 ${
               isCelebrationTheme && !shouldReduceAnimations ? "animate-pulse" : ""
+            } ${
+              currentEventTheme === "independence-day" 
+                ? "text-white drop-shadow-lg" 
+                : currentEventTheme === "new-year"
+                ? "text-amber-300 drop-shadow-[0_0_10px_rgba(255,215,0,0.5)]"
+                : isIslamicTheme
+                ? "text-emerald-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.4)]"
+                : "text-primary"
             }`}
           >
             {getEventGreeting()}
-            {isIslamicTheme && <span className="ml-2">☪</span>}
-            {currentEventTheme === "christmas" && <span className="ml-2">🎄</span>}
-            {currentEventTheme === "new-year" && <span className="ml-2">🎉</span>}
-            {currentEventTheme === "valentine" && <span className="ml-2">💕</span>}
-            {currentEventTheme === "halloween" && <span className="ml-2">🎃</span>}
-            {currentEventTheme === "independence-day" && <span className="ml-2">🇮🇩</span>}
-            {currentEventTheme === "earth-day" && <span className="ml-2">🌍</span>}
-            {currentEventTheme === "mothers-day" && <span className="ml-2">💐</span>}
-            {currentEventTheme === "fathers-day" && <span className="ml-2">👔</span>}
+            {eventIcon && <span className="ml-2">{eventIcon}</span>}
           </motion.p>
 
-          {/* Name */}
-          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-orbitron font-bold mb-6 gradient-text">
+          {/* Name with event-specific styling */}
+          <h1 
+            className={`text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-orbitron font-bold mb-6 ${
+              currentEventTheme === "independence-day"
+                ? "text-white drop-shadow-[0_4px_20px_rgba(255,255,255,0.3)]"
+                : currentEventTheme === "new-year"
+                ? "bg-gradient-to-r from-amber-300 via-yellow-200 to-amber-400 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(255,215,0,0.4)]"
+                : isIslamicTheme
+                ? "bg-gradient-to-r from-emerald-300 via-green-200 to-lime-300 bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(52,211,153,0.3)]"
+                : currentEventTheme === "christmas"
+                ? "bg-gradient-to-r from-red-400 via-white to-green-400 bg-clip-text text-transparent"
+                : currentEventTheme === "valentine" || currentEventTheme === "mothers-day"
+                ? "bg-gradient-to-r from-pink-300 via-rose-200 to-pink-400 bg-clip-text text-transparent"
+                : "gradient-text"
+            }`}
+          >
             Fikih Sulaiman Pratama
           </h1>
 
           {/* Typing Effect */}
           <div className="h-12 sm:h-16 md:h-20 mb-8">
             <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-poppins font-semibold text-foreground">
-              <span className="text-secondary">{displayedText}</span>
-              <span className="animate-blink text-primary">|</span>
+              <span className={`${
+                currentEventTheme === "independence-day"
+                  ? "text-white"
+                  : currentEventTheme === "new-year"
+                  ? "text-amber-200"
+                  : isIslamicTheme
+                  ? "text-emerald-200"
+                  : "text-secondary"
+              }`}>{displayedText}</span>
+              <span className={`animate-blink ${
+                currentEventTheme === "new-year"
+                  ? "text-amber-400"
+                  : isIslamicTheme
+                  ? "text-emerald-400"
+                  : "text-primary"
+              }`}>|</span>
             </h2>
           </div>
 
           {/* Description */}
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl font-poppins text-muted-foreground max-w-3xl mx-auto mb-12 leading-relaxed">
+          <p className={`text-sm sm:text-base md:text-lg lg:text-xl font-poppins max-w-3xl mx-auto mb-12 leading-relaxed ${
+            currentEventTheme === "independence-day"
+              ? "text-white/90"
+              : currentEventTheme === "new-year"
+              ? "text-amber-100/80"
+              : isIslamicTheme
+              ? "text-emerald-100/80"
+              : "text-muted-foreground"
+          }`}>
             {t("hero.description")}
           </p>
 
-          {/* CTA Buttons */}
+          {/* CTA Buttons with event-specific styling */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button
               size="lg"
@@ -203,7 +282,7 @@ const Hero = () => {
                 const contactSection = document.getElementById('contact');
                 contactSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="w-full sm:w-auto font-poppins text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 bg-primary hover:bg-primary/90 box-glow-hover group"
+              className={`w-full sm:w-auto font-poppins text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 box-glow-hover group transition-all duration-300 ${getButtonStyles.primary}`}
             >
               <Briefcase className="mr-2 group-hover:scale-110 transition-transform" />
               {t("nav.hireMe")}
@@ -219,7 +298,7 @@ const Hero = () => {
                 link.click();
                 document.body.removeChild(link);
               }}
-              className="w-full sm:w-auto font-poppins text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 border-primary text-primary hover:bg-primary/10 box-glow-hover group"
+              className={`w-full sm:w-auto font-poppins text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6 box-glow-hover group transition-all duration-300 ${getButtonStyles.secondary}`}
             >
               <Download className="mr-2 group-hover:scale-110 transition-transform" />
               {t("hero.downloadCV")}
@@ -230,9 +309,17 @@ const Hero = () => {
         {/* Scroll Indicator */}
         <a
           href="#about"
-          className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
+          className={`absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce ${
+            currentEventTheme === "independence-day"
+              ? "text-white"
+              : currentEventTheme === "new-year"
+              ? "text-amber-400"
+              : isIslamicTheme
+              ? "text-emerald-400"
+              : "text-primary"
+          }`}
         >
-          <ArrowDown className="w-6 h-6 sm:w-8 sm:h-8 text-primary" />
+          <ArrowDown className="w-6 h-6 sm:w-8 sm:h-8" />
         </a>
       </div>
     </section>

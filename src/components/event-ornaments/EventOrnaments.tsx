@@ -175,10 +175,17 @@ const getLiteOrnaments = (theme: EventThemeType): React.ReactNode => {
 
 const EventOrnaments = () => {
   const { currentEventTheme } = useEventTheme();
-  const { isLiteMode, shouldReduceAnimations, particleCount } = usePerformance();
+  const { isLiteMode, shouldReduceAnimations } = usePerformance();
 
   // Get ornaments based on performance mode
   const ornaments = useMemo(() => {
+    // Skip ornaments on non-default theme (handled by EventHeroBackground for events)
+    // This component now only renders ADDITIONAL ornaments outside of hero section
+    // Main hero ornaments are handled by EventHeroBackground
+    if (currentEventTheme !== "default") {
+      return null;
+    }
+    
     if (shouldReduceAnimations) {
       return null;
     }

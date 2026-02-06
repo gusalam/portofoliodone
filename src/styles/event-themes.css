@@ -923,3 +923,184 @@
   --event-accent: 35 75% 50%;
   --event-glow: 0 0 24px hsl(35 75% 50% / 0.46);
 }
+
+/* ================================================
+   EVENT HERO BACKGROUND STYLES
+   ================================================ */
+
+/* Event ornaments container */
+.event-ornaments-container {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Event mode indicator - hide grid in event mode */
+[class*="event-"]:not(.event-default) .hero-grid-pattern {
+  opacity: 0 !important;
+}
+
+/* Event text shadows for better readability */
+.event-text-shadow-light {
+  text-shadow: 0 2px 10px rgba(255, 255, 255, 0.3),
+               0 4px 20px rgba(255, 255, 255, 0.2);
+}
+
+.event-text-shadow-dark {
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5),
+               0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.event-text-shadow-gold {
+  text-shadow: 0 0 20px rgba(255, 215, 0, 0.5),
+               0 0 40px rgba(255, 215, 0, 0.3),
+               0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.event-text-shadow-green {
+  text-shadow: 0 0 20px rgba(52, 211, 153, 0.5),
+               0 0 40px rgba(52, 211, 153, 0.3),
+               0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.event-text-shadow-red {
+  text-shadow: 0 0 20px rgba(239, 68, 68, 0.5),
+               0 0 40px rgba(239, 68, 68, 0.3),
+               0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Event button glow effects */
+.event-button-glow-gold {
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.4),
+              0 0 40px rgba(255, 215, 0, 0.2),
+              inset 0 0 20px rgba(255, 215, 0, 0.1);
+}
+
+.event-button-glow-green {
+  box-shadow: 0 0 20px rgba(52, 211, 153, 0.4),
+              0 0 40px rgba(52, 211, 153, 0.2),
+              inset 0 0 20px rgba(52, 211, 153, 0.1);
+}
+
+.event-button-glow-red {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4),
+              0 0 40px rgba(239, 68, 68, 0.2),
+              inset 0 0 20px rgba(239, 68, 68, 0.1);
+}
+
+/* Animated gradient text for events */
+.event-gradient-text-gold {
+  background: linear-gradient(135deg, 
+    hsl(45, 100%, 70%) 0%,
+    hsl(40, 100%, 60%) 25%,
+    hsl(50, 100%, 75%) 50%,
+    hsl(45, 100%, 65%) 75%,
+    hsl(35, 100%, 60%) 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 5s ease infinite;
+}
+
+.event-gradient-text-green {
+  background: linear-gradient(135deg, 
+    hsl(160, 70%, 60%) 0%,
+    hsl(140, 65%, 55%) 25%,
+    hsl(120, 60%, 65%) 50%,
+    hsl(150, 70%, 60%) 75%,
+    hsl(170, 65%, 55%) 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 5s ease infinite;
+}
+
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulse glow animation for celebration events */
+@keyframes pulse-glow {
+  0%, 100% { 
+    box-shadow: 0 0 20px var(--event-glow);
+  }
+  50% { 
+    box-shadow: 0 0 40px var(--event-glow), 
+                0 0 60px var(--event-glow);
+  }
+}
+
+.event-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Float animation for event elements */
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.event-float {
+  animation: float-gentle 4s ease-in-out infinite;
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.event-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+/* Independence day specific - red white gradient */
+.event-independence-day .gradient-text {
+  background: linear-gradient(180deg, 
+    hsl(0, 0%, 100%) 0%,
+    hsl(0, 0%, 95%) 45%,
+    hsl(0, 80%, 55%) 55%,
+    hsl(0, 85%, 45%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* New Year specific - golden glow */
+.event-new-year .gradient-text {
+  background: linear-gradient(135deg, 
+    hsl(45, 100%, 70%) 0%,
+    hsl(40, 100%, 60%) 50%,
+    hsl(50, 100%, 75%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+}
+
+/* Islamic events - emerald gold */
+.event-ramadan .gradient-text,
+.event-eid-fitr .gradient-text,
+.event-eid-adha .gradient-text,
+.event-maulid-nabi .gradient-text,
+.event-isra-miraj .gradient-text,
+.event-islamic-new-year .gradient-text {
+  background: linear-gradient(135deg, 
+    hsl(160, 70%, 60%) 0%,
+    hsl(45, 90%, 65%) 50%,
+    hsl(140, 60%, 55%) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
