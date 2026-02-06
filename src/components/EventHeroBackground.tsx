@@ -2,12 +2,30 @@ import { lazy, Suspense, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
+import useParallax from "@/hooks/useParallax";
 
-// Import event background images
+// Import all event background images
 import newYearBg from "@/assets/event-bg-new-year.jpg";
 import ramadanBg from "@/assets/event-bg-ramadan.jpg";
 import eidFitrBg from "@/assets/event-bg-eid-fitr.jpg";
+import eidAdhaBg from "@/assets/event-bg-eid-adha.jpg";
+import maulidNabiBg from "@/assets/event-bg-maulid-nabi.jpg";
+import israMirajBg from "@/assets/event-bg-isra-miraj.jpg";
+import islamicNewYearBg from "@/assets/event-bg-islamic-new-year.jpg";
 import independenceBg from "@/assets/event-bg-independence.jpg";
+import heroesDayBg from "@/assets/event-bg-heroes-day.jpg";
+import kartiniDayBg from "@/assets/event-bg-kartini-day.jpg";
+import youthPledgeBg from "@/assets/event-bg-youth-pledge.jpg";
+import pancasilaDayBg from "@/assets/event-bg-pancasila-day.jpg";
+import batikDayBg from "@/assets/event-bg-batik-day.jpg";
+import educationDayBg from "@/assets/event-bg-education-day.jpg";
+import valentineBg from "@/assets/event-bg-valentine.jpg";
+import halloweenBg from "@/assets/event-bg-halloween.jpg";
+import earthDayBg from "@/assets/event-bg-earth-day.jpg";
+import environmentDayBg from "@/assets/event-bg-environment-day.jpg";
+import mothersDayBg from "@/assets/event-bg-mothers-day.jpg";
+import fathersDayBg from "@/assets/event-bg-fathers-day.jpg";
+import laborDayBg from "@/assets/event-bg-labor-day.jpg";
 import christmasBg from "@/assets/event-bg-christmas.jpg";
 
 // Lazy load heavy visual components
@@ -22,14 +40,34 @@ const MosqueAnimation = lazy(() => import("./event-ornaments/MosqueAnimation"));
 const FlagAnimation = lazy(() => import("./event-ornaments/FlagAnimation"));
 const HeartAnimation = lazy(() => import("./event-ornaments/HeartAnimation"));
 
-// Event background image mapping
-const EVENT_BACKGROUND_IMAGES: Partial<Record<EventThemeType, string>> = {
+// Complete event background image mapping - ALL events have unique backgrounds
+const EVENT_BACKGROUND_IMAGES: Record<EventThemeType, string | null> = {
+  "default": null,
+  // Islamic Events
   "new-year": newYearBg,
   "ramadan": ramadanBg,
   "eid-fitr": eidFitrBg,
-  "eid-adha": eidFitrBg, // Reuse eid-fitr image
+  "eid-adha": eidAdhaBg,
+  "maulid-nabi": maulidNabiBg,
+  "isra-miraj": israMirajBg,
+  "islamic-new-year": islamicNewYearBg,
+  // Indonesian National Events
   "independence-day": independenceBg,
+  "heroes-day": heroesDayBg,
+  "kartini-day": kartiniDayBg,
+  "youth-pledge": youthPledgeBg,
+  "pancasila-day": pancasilaDayBg,
+  "batik-day": batikDayBg,
+  "education-day": educationDayBg,
+  // Global Events
+  "valentine": valentineBg,
+  "halloween": halloweenBg,
   "christmas": christmasBg,
+  "earth-day": earthDayBg,
+  "environment-day": environmentDayBg,
+  "mothers-day": mothersDayBg,
+  "fathers-day": fathersDayBg,
+  "labor-day": laborDayBg,
 };
 
 // Event background configurations
@@ -40,7 +78,6 @@ interface EventBackgroundConfig {
   secondaryGlow?: string;
   pattern?: "stars" | "dots" | "islamic" | "festive";
   animatedElements?: React.ReactNode;
-  backgroundImage?: string;
 }
 
 // Full visual configurations for each event
@@ -51,7 +88,6 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(45, 100%, 50%)",
     secondaryGlow: "hsl(280, 80%, 60%)",
     pattern: "festive",
-    backgroundImage: newYearBg,
     animatedElements: (
       <>
         <FireworksAnimation colors={["#FFD700", "#FF6B6B", "#4ECDC4", "#A855F7", "#F59E0B"]} />
@@ -65,7 +101,6 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(45, 90%, 55%)",
     secondaryGlow: "hsl(160, 70%, 40%)",
     pattern: "islamic",
-    backgroundImage: ramadanBg,
     animatedElements: (
       <>
         <MosqueAnimation position="center" opacity={0.15} />
@@ -81,7 +116,6 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(120, 60%, 50%)",
     secondaryGlow: "hsl(45, 90%, 55%)",
     pattern: "festive",
-    backgroundImage: eidFitrBg,
     animatedElements: (
       <>
         <KetupatOrnaments count={12} />
@@ -153,7 +187,6 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(0, 80%, 50%)",
     secondaryGlow: "hsl(0, 0%, 100%)",
     pattern: "festive",
-    backgroundImage: independenceBg,
     animatedElements: (
       <>
         <FlagAnimation position="both" />
@@ -173,13 +206,59 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
       </>
     ),
   },
+  "kartini-day": {
+    gradient: "linear-gradient(180deg, hsl(35, 60%, 12%) 0%, hsl(340, 45%, 18%) 50%, hsl(30, 50%, 15%) 100%)",
+    overlayGradient: "radial-gradient(ellipse at 50% 40%, hsl(340, 60%, 50%, 0.15) 0%, transparent 50%)",
+    glowColor: "hsl(35, 80%, 55%)",
+    secondaryGlow: "hsl(340, 60%, 55%)",
+    pattern: "dots",
+  },
+  "youth-pledge": {
+    gradient: "linear-gradient(180deg, hsl(0, 60%, 18%) 0%, hsl(40, 70%, 20%) 50%, hsl(0, 55%, 15%) 100%)",
+    overlayGradient: "radial-gradient(ellipse at 50% 40%, hsl(40, 80%, 50%, 0.15) 0%, transparent 50%)",
+    glowColor: "hsl(0, 70%, 55%)",
+    secondaryGlow: "hsl(40, 90%, 55%)",
+    pattern: "festive",
+    animatedElements: (
+      <>
+        <FlagAnimation position="right" />
+        <ConfettiAnimation colors={["#EF4444", "#FFD700", "#FFFFFF"]} count={35} />
+      </>
+    ),
+  },
+  "pancasila-day": {
+    gradient: "linear-gradient(180deg, hsl(0, 55%, 15%) 0%, hsl(35, 60%, 18%) 50%, hsl(0, 50%, 12%) 100%)",
+    overlayGradient: "radial-gradient(ellipse at 50% 30%, hsl(35, 70%, 50%, 0.15) 0%, transparent 50%)",
+    glowColor: "hsl(0, 65%, 50%)",
+    secondaryGlow: "hsl(35, 80%, 55%)",
+    pattern: "stars",
+    animatedElements: (
+      <>
+        <FlagAnimation position="left" />
+        <StarsBackground count={30} />
+      </>
+    ),
+  },
+  "batik-day": {
+    gradient: "linear-gradient(180deg, hsl(30, 50%, 12%) 0%, hsl(35, 55%, 16%) 50%, hsl(25, 45%, 10%) 100%)",
+    overlayGradient: "radial-gradient(ellipse at 50% 50%, hsl(30, 60%, 40%, 0.1) 0%, transparent 50%)",
+    glowColor: "hsl(30, 70%, 50%)",
+    secondaryGlow: "hsl(35, 75%, 55%)",
+    pattern: "dots",
+  },
+  "education-day": {
+    gradient: "linear-gradient(180deg, hsl(45, 80%, 20%) 0%, hsl(210, 60%, 25%) 50%, hsl(45, 70%, 18%) 100%)",
+    overlayGradient: "radial-gradient(ellipse at 50% 30%, hsl(45, 90%, 60%, 0.2) 0%, transparent 50%)",
+    glowColor: "hsl(45, 90%, 55%)",
+    secondaryGlow: "hsl(210, 70%, 55%)",
+    pattern: "dots",
+  },
   "christmas": {
     gradient: "linear-gradient(180deg, hsl(200, 50%, 12%) 0%, hsl(150, 45%, 15%) 50%, hsl(160, 40%, 10%) 100%)",
     overlayGradient: "radial-gradient(ellipse at 50% 0%, hsl(0, 0%, 100%, 0.1) 0%, transparent 50%)",
     glowColor: "hsl(0, 75%, 55%)",
     secondaryGlow: "hsl(140, 60%, 45%)",
     pattern: "festive",
-    backgroundImage: christmasBg,
     animatedElements: (
       <>
         <SnowflakeAnimation count={60} />
@@ -242,46 +321,6 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
         <StarsBackground count={25} />
       </>
     ),
-  },
-  "kartini-day": {
-    gradient: "linear-gradient(180deg, hsl(35, 60%, 12%) 0%, hsl(340, 45%, 18%) 50%, hsl(30, 50%, 15%) 100%)",
-    overlayGradient: "radial-gradient(ellipse at 50% 40%, hsl(340, 60%, 50%, 0.15) 0%, transparent 50%)",
-    glowColor: "hsl(35, 80%, 55%)",
-    secondaryGlow: "hsl(340, 60%, 55%)",
-    pattern: "dots",
-  },
-  "youth-pledge": {
-    gradient: "linear-gradient(180deg, hsl(0, 60%, 18%) 0%, hsl(40, 70%, 20%) 50%, hsl(0, 55%, 15%) 100%)",
-    overlayGradient: "radial-gradient(ellipse at 50% 40%, hsl(40, 80%, 50%, 0.15) 0%, transparent 50%)",
-    glowColor: "hsl(0, 70%, 55%)",
-    secondaryGlow: "hsl(40, 90%, 55%)",
-    pattern: "festive",
-    animatedElements: (
-      <>
-        <FlagAnimation position="right" />
-        <ConfettiAnimation colors={["#EF4444", "#FFD700", "#FFFFFF"]} count={35} />
-      </>
-    ),
-  },
-  "pancasila-day": {
-    gradient: "linear-gradient(180deg, hsl(0, 55%, 15%) 0%, hsl(35, 60%, 18%) 50%, hsl(0, 50%, 12%) 100%)",
-    overlayGradient: "radial-gradient(ellipse at 50% 30%, hsl(35, 70%, 50%, 0.15) 0%, transparent 50%)",
-    glowColor: "hsl(0, 65%, 50%)",
-    secondaryGlow: "hsl(35, 80%, 55%)",
-    pattern: "stars",
-    animatedElements: (
-      <>
-        <FlagAnimation position="left" />
-        <StarsBackground count={30} />
-      </>
-    ),
-  },
-  "batik-day": {
-    gradient: "linear-gradient(180deg, hsl(30, 50%, 12%) 0%, hsl(35, 55%, 16%) 50%, hsl(25, 45%, 10%) 100%)",
-    overlayGradient: "radial-gradient(ellipse at 50% 50%, hsl(30, 60%, 40%, 0.1) 0%, transparent 50%)",
-    glowColor: "hsl(30, 70%, 50%)",
-    secondaryGlow: "hsl(35, 75%, 55%)",
-    pattern: "dots",
   },
   "labor-day": {
     gradient: "linear-gradient(180deg, hsl(0, 55%, 15%) 0%, hsl(45, 70%, 18%) 50%, hsl(0, 50%, 12%) 100%)",
@@ -364,38 +403,61 @@ const GlowEffects = ({ config }: { config: EventBackgroundConfig }) => (
   </>
 );
 
-// Background image component with lazy loading
-const BackgroundImage = ({ 
+// Background image component with parallax and lazy loading
+const ParallaxBackgroundImage = ({ 
   src, 
   alt, 
-  onLoad 
+  onLoad,
+  parallaxEnabled = true,
 }: { 
   src: string; 
   alt: string; 
   onLoad?: () => void;
+  parallaxEnabled?: boolean;
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const { style: parallaxStyle } = useParallax({ 
+    speed: 0.25, 
+    maxOffset: 100,
+    enabled: parallaxEnabled && isLoaded,
+  });
 
   return (
-    <motion.img
-      src={src}
-      alt={alt}
-      className="absolute inset-0 w-full h-full object-cover"
-      initial={{ opacity: 0, scale: 1.05 }}
-      animate={{ 
-        opacity: isLoaded ? 1 : 0, 
-        scale: isLoaded ? 1 : 1.05 
-      }}
-      transition={{ 
-        duration: 1.2, 
-        ease: "easeOut" as const
-      }}
-      onLoad={() => {
-        setIsLoaded(true);
-        onLoad?.();
-      }}
-      loading="lazy"
-    />
+    <motion.div
+      className="absolute inset-0 overflow-hidden"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: isLoaded ? 1 : 0 }}
+      transition={{ duration: 1.2, ease: "easeOut" }}
+    >
+      <motion.img
+        src={src}
+        alt={alt}
+        className="absolute inset-0 w-full h-full object-cover"
+        style={{
+          ...parallaxStyle,
+          // Extend image to cover parallax movement
+          top: "-10%",
+          height: "120%",
+        }}
+        initial={{ scale: 1.1 }}
+        animate={{ 
+          scale: isLoaded ? 1.05 : 1.1,
+        }}
+        transition={{ 
+          duration: 1.5, 
+          ease: "easeOut"
+        }}
+        onLoad={() => {
+          setIsLoaded(true);
+          onLoad?.();
+        }}
+        loading="lazy"
+      />
+      {/* Overlay gradient for better text readability */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"
+      />
+    </motion.div>
   );
 };
 
@@ -424,7 +486,6 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
     
     // Reduce animations in lite mode
     if (isLiteMode) {
-      // Return simplified version based on event
       return null;
     }
     
@@ -481,20 +542,16 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
               loop
               muted
               playsInline
-              onLoadedData={onVideoLoaded}
               className="absolute inset-0 w-full h-full object-cover"
+              onLoadedData={onVideoLoaded}
             >
               <source src="/hero-video.mp4" type="video/mp4" />
             </video>
-            {/* Default video overlay */}
-            <motion.div 
-              className="absolute inset-0"
-              style={{ background: "rgba(0, 0, 0, 0.85)" }}
-              variants={childVariants}
-            />
+            {/* Video overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80" />
           </motion.div>
-        ) : eventConfig ? (
-          /* Event mode: Show full themed background */
+        ) : isEventActive && eventConfig ? (
+          /* Event mode: Show full event visual UI */
           <motion.div
             key={`event-bg-${currentEventTheme}`}
             variants={containerVariants}
@@ -503,32 +560,32 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
             exit="exit"
             className="absolute inset-0"
           >
-            {/* Background image (if available) */}
+            {/* Background Image with Parallax */}
             {eventBgImage && (
-              <BackgroundImage 
-                src={eventBgImage} 
+              <ParallaxBackgroundImage
+                src={eventBgImage}
                 alt={`${currentEventTheme} background`}
                 onLoad={() => setBgImageLoaded(true)}
+                parallaxEnabled={!shouldReduceAnimations && !isLiteMode}
               />
             )}
-            
-            {/* Base gradient background (fallback or overlay) */}
-            <motion.div 
+
+            {/* Fallback gradient background (behind image) */}
+            <motion.div
+              variants={childVariants}
               className="absolute inset-0"
               style={{ 
-                background: eventBgImage 
-                  ? `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7))`
-                  : eventConfig.gradient 
+                background: eventConfig.gradient,
+                opacity: eventBgImage && bgImageLoaded ? 0 : 1,
               }}
-              variants={childVariants}
             />
             
-            {/* Overlay gradient for depth */}
+            {/* Overlay gradient */}
             {eventConfig.overlayGradient && (
-              <motion.div 
-                className="absolute inset-0"
-                style={{ background: eventConfig.overlayGradient }}
+              <motion.div
                 variants={childVariants}
+                className="absolute inset-0 pointer-events-none"
+                style={{ background: eventConfig.overlayGradient }}
               />
             )}
             
@@ -546,18 +603,19 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
             {animatedElements && (
               <Suspense fallback={null}>
                 <motion.div 
+                  variants={childVariants}
                   className="absolute inset-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 1 }}
                 >
                   {animatedElements}
                 </motion.div>
               </Suspense>
             )}
+            
+            {/* Final overlay for text readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-background/50 via-transparent to-background/30 pointer-events-none" />
           </motion.div>
         ) : (
-          /* Fallback: Solid background */
+          /* Fallback: Static background */
           <motion.div
             key="fallback-bg"
             variants={containerVariants}
@@ -573,4 +631,5 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
     </div>
   );
 };
+
 export default EventHeroBackground;
