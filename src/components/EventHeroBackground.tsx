@@ -632,18 +632,23 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
   const eventConfig = isEventActive ? EVENT_BACKGROUNDS[currentEventTheme] : null;
   const eventBgImage = isEventActive ? EVENT_BACKGROUND_IMAGES[currentEventTheme] : null;
 
+  // Reset image loaded state when theme/background changes
+  useEffect(() => {
+    setBgImageLoaded(false);
+  }, [currentEventTheme, eventBgImage]);
+
   // Show video only when: default theme + video enabled + not in lite mode on mobile
   const shouldShowVideo = !isEventActive && showDefaultVideo && videoQuality !== "disabled";
 
   // Memoize animated elements to prevent re-renders
   const animatedElements = useMemo(() => {
     if (!eventConfig?.animatedElements || shouldReduceAnimations) return null;
-    
+
     // Reduce animations in lite mode
     if (isLiteMode) {
       return null;
     }
-    
+
     return eventConfig.animatedElements;
   }, [eventConfig, shouldReduceAnimations, isLiteMode]);
 
@@ -715,25 +720,24 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
             exit="exit"
             className="absolute inset-0"
           >
-            {/* Background Image with Parallax */}
-            {eventBgImage && (
-              <ParallaxBackgroundImage
-                src={eventBgImage}
-                alt={`${currentEventTheme} background`}
-                onLoad={() => setBgImageLoaded(true)}
-                parallaxEnabled={!shouldReduceAnimations && !isLiteMode}
-              />
-            )}
-
-            {/* Fallback gradient background (behind image) */}
+            {/* Fallback gradient background (always behind image) */}
             <motion.div
               variants={childVariants}
-              className="absolute inset-0"
-              style={{ 
-                background: eventConfig.gradient,
-                opacity: eventBgImage && bgImageLoaded ? 0 : 1,
-              }}
+              className="absolute inset-0 z-0"
+              style={{ background: eventConfig.gradient }}
             />
+
+            {/* Background Image with Parallax */}
+            {eventBgImage && (
+              <div className="absolute inset-0 z-[1]">
+                <ParallaxBackgroundImage
+                  src={eventBgImage}
+                  alt={`${currentEventTheme} background`}
+                  onLoad={() => setBgImageLoaded(true)}
+                  parallaxEnabled={!shouldReduceAnimations && !isLiteMode}
+                />
+              </div>
+            )}
             
             {/* Overlay gradient */}
             {eventConfig.overlayGradient && (
