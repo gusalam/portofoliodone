@@ -1,0 +1,476 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Default/Light Mode Base */
+    --background: 0 0% 98%;
+    --foreground: 258 90% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 258 90% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 258 90% 10%;
+
+    --primary: 258 90% 66%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+    --ring: 258 90% 66%;
+
+    --radius: 0.75rem;
+
+     /* Subtle Glow Effects - Premium & Refined */
+     --glow-primary: 0 0 12px hsl(258 90% 66% / 0.3);
+     --glow-secondary: 0 0 12px hsl(217 91% 60% / 0.3);
+     --glow-strong: 0 0 20px hsl(258 90% 66% / 0.4);
+    
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(258 90% 66%), hsl(217 91% 60%));
+    --gradient-dark: linear-gradient(180deg, hsl(258 20% 8%), hsl(258 30% 5%));
+  }
+
+  /* ==============================
+     MONDAY - Merah (Red) Theme
+     Kesan berani, energi, semangat
+     ============================== */
+  .dark.theme-monday {
+    --background: 0 40% 6%;
+    --foreground: 0 20% 98%;
+
+    --card: 0 35% 10%;
+    --card-foreground: 0 20% 98%;
+
+    --popover: 0 35% 10%;
+    --popover-foreground: 0 20% 98%;
+
+    --primary: 0 72% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 65% 42%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 0 30% 14%;
+    --muted-foreground: 0 20% 70%;
+
+    --accent: 0 72% 51%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 0 30% 18%;
+    --input: 0 30% 18%;
+    --ring: 0 72% 51%;
+
+    --glow-primary: 0 0 15px hsl(0 72% 51% / 0.35);
+    --glow-secondary: 0 0 15px hsl(0 65% 42% / 0.35);
+    --glow-strong: 0 0 25px hsl(0 72% 51% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(0 72% 51%), hsl(0 65% 42%));
+    --gradient-dark: linear-gradient(180deg, hsl(0 40% 6%), hsl(0 45% 3%));
+  }
+
+  /* ==============================
+     TUESDAY - Jingga (Orange) Theme
+     Kesan hangat, kreatif, antusias
+     ============================== */
+  .dark.theme-tuesday {
+    --background: 25 40% 6%;
+    --foreground: 30 30% 98%;
+
+    --card: 25 35% 10%;
+    --card-foreground: 30 30% 98%;
+
+    --popover: 25 35% 10%;
+    --popover-foreground: 30 30% 98%;
+
+    --primary: 25 95% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 30 90% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 25 30% 14%;
+    --muted-foreground: 25 25% 68%;
+
+    --accent: 25 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 25 30% 18%;
+    --input: 25 30% 18%;
+    --ring: 25 95% 53%;
+
+    --glow-primary: 0 0 15px hsl(25 95% 53% / 0.35);
+    --glow-secondary: 0 0 15px hsl(30 90% 45% / 0.35);
+    --glow-strong: 0 0 25px hsl(25 95% 53% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(30 90% 45%));
+    --gradient-dark: linear-gradient(180deg, hsl(25 40% 6%), hsl(25 45% 3%));
+  }
+
+  /* ==============================
+     WEDNESDAY - Kuning (Yellow) Theme
+     Kesan ceria, optimis, cerah
+     ============================== */
+  .dark.theme-wednesday {
+    --background: 45 35% 6%;
+    --foreground: 50 30% 98%;
+
+    --card: 45 30% 10%;
+    --card-foreground: 50 30% 98%;
+
+    --popover: 45 30% 10%;
+    --popover-foreground: 50 30% 98%;
+
+    --primary: 48 96% 53%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 45 90% 45%;
+    --secondary-foreground: 0 0% 0%;
+
+    --muted: 45 25% 14%;
+    --muted-foreground: 45 20% 68%;
+
+    --accent: 48 96% 53%;
+    --accent-foreground: 0 0% 0%;
+
+    --border: 45 25% 18%;
+    --input: 45 25% 18%;
+    --ring: 48 96% 53%;
+
+    --glow-primary: 0 0 15px hsl(48 96% 53% / 0.35);
+    --glow-secondary: 0 0 15px hsl(45 90% 45% / 0.35);
+    --glow-strong: 0 0 25px hsl(48 96% 53% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(48 96% 53%), hsl(45 90% 45%));
+    --gradient-dark: linear-gradient(180deg, hsl(45 35% 6%), hsl(45 40% 3%));
+  }
+
+  /* ==============================
+     THURSDAY - Hijau (Green) Theme
+     Kesan segar, natural, harmonis
+     ============================== */
+  .dark.theme-thursday {
+    --background: 140 35% 6%;
+    --foreground: 140 25% 98%;
+
+    --card: 140 30% 10%;
+    --card-foreground: 140 25% 98%;
+
+    --popover: 140 30% 10%;
+    --popover-foreground: 140 25% 98%;
+
+    --primary: 142 71% 45%;
+    --primary-foreground: 0 0% 0%;
+
+    --secondary: 145 65% 38%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 140 25% 14%;
+    --muted-foreground: 140 20% 68%;
+
+    --accent: 142 71% 45%;
+    --accent-foreground: 0 0% 0%;
+
+    --border: 140 25% 18%;
+    --input: 140 25% 18%;
+    --ring: 142 71% 45%;
+
+    --glow-primary: 0 0 15px hsl(142 71% 45% / 0.35);
+    --glow-secondary: 0 0 15px hsl(145 65% 38% / 0.35);
+    --glow-strong: 0 0 25px hsl(142 71% 45% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(142 71% 45%), hsl(145 65% 38%));
+    --gradient-dark: linear-gradient(180deg, hsl(140 35% 6%), hsl(140 40% 3%));
+  }
+
+  /* ==============================
+     FRIDAY - Biru (Blue) Theme
+     Kesan tenang, profesional, terpercaya
+     ============================== */
+  .dark.theme-friday {
+    --background: 215 45% 6%;
+    --foreground: 210 30% 98%;
+
+    --card: 215 40% 10%;
+    --card-foreground: 210 30% 98%;
+
+    --popover: 215 40% 10%;
+    --popover-foreground: 210 30% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 221 83% 53%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 215 35% 14%;
+    --muted-foreground: 215 25% 68%;
+
+    --accent: 217 91% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 215 35% 18%;
+    --input: 215 35% 18%;
+    --ring: 217 91% 60%;
+
+    --glow-primary: 0 0 15px hsl(217 91% 60% / 0.35);
+    --glow-secondary: 0 0 15px hsl(221 83% 53% / 0.35);
+    --glow-strong: 0 0 25px hsl(217 91% 60% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(221 83% 53%));
+    --gradient-dark: linear-gradient(180deg, hsl(215 45% 6%), hsl(215 50% 3%));
+  }
+
+  /* ==============================
+     SATURDAY - Nila (Indigo) Theme
+     Kesan misterius, dalam, bijaksana
+     ============================== */
+  .dark.theme-saturday {
+    --background: 245 40% 7%;
+    --foreground: 240 30% 98%;
+
+    --card: 245 35% 11%;
+    --card-foreground: 240 30% 98%;
+
+    --popover: 245 35% 11%;
+    --popover-foreground: 240 30% 98%;
+
+    --primary: 245 58% 51%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 239 84% 67%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 245 30% 15%;
+    --muted-foreground: 245 20% 68%;
+
+    --accent: 245 58% 51%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 245 30% 18%;
+    --input: 245 30% 18%;
+    --ring: 245 58% 51%;
+
+    --glow-primary: 0 0 15px hsl(245 58% 51% / 0.35);
+    --glow-secondary: 0 0 15px hsl(239 84% 67% / 0.35);
+    --glow-strong: 0 0 25px hsl(245 58% 51% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(245 58% 51%), hsl(239 84% 67%));
+    --gradient-dark: linear-gradient(180deg, hsl(245 40% 7%), hsl(245 45% 4%));
+  }
+
+  /* ==============================
+     SUNDAY - Ungu (Violet) Theme
+     Kesan royal, kreatif, spiritual
+     ============================== */
+  .dark.theme-sunday {
+    --background: 280 40% 6%;
+    --foreground: 280 25% 98%;
+
+    --card: 280 35% 10%;
+    --card-foreground: 280 25% 98%;
+
+    --popover: 280 35% 10%;
+    --popover-foreground: 280 25% 98%;
+
+    --primary: 280 73% 60%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 285 70% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 280 30% 14%;
+    --muted-foreground: 280 20% 68%;
+
+    --accent: 280 73% 60%;
+    --accent-foreground: 0 0% 100%;
+
+    --border: 280 30% 18%;
+    --input: 280 30% 18%;
+    --ring: 280 73% 60%;
+
+    --glow-primary: 0 0 15px hsl(280 73% 60% / 0.35);
+    --glow-secondary: 0 0 15px hsl(285 70% 50% / 0.35);
+    --glow-strong: 0 0 25px hsl(280 73% 60% / 0.5);
+    
+    --gradient-primary: linear-gradient(135deg, hsl(280 73% 60%), hsl(285 70% 50%));
+    --gradient-dark: linear-gradient(180deg, hsl(280 40% 6%), hsl(280 45% 3%));
+  }
+
+  /* Default Dark Mode (Fallback - same as Wednesday Matrix) */
+  .dark {
+     --background: 150 10% 4%;
+    --foreground: 0 0% 98%;
+
+     --card: 150 12% 8%;
+    --card-foreground: 0 0% 98%;
+
+     --popover: 150 12% 8%;
+    --popover-foreground: 0 0% 98%;
+
+     --primary: 152 75% 45%;
+    --primary-foreground: 0 0% 100%;
+
+     --secondary: 145 65% 38%;
+    --secondary-foreground: 0 0% 100%;
+
+     --muted: 150 10% 12%;
+    --muted-foreground: 240 5% 65%;
+
+     --accent: 152 75% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+     --border: 152 25% 16%;
+     --input: 152 25% 16%;
+     --ring: 152 75% 45%;
+
+     --glow-primary: 0 0 15px hsl(152 75% 45% / 0.3);
+     --glow-secondary: 0 0 15px hsl(145 65% 38% / 0.3);
+     --glow-strong: 0 0 25px hsl(152 75% 45% / 0.45);
+  }
+
+   /* Dramatic theme transitions */
+  * {
+     transition: background-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                 border-color 0.6s cubic-bezier(0.4, 0, 0.2, 1), 
+                 box-shadow 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+                 color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Exclude elements that should not transition */
+  button, a, input, textarea, select {
+     transition: background-color 0.25s ease, 
+                 border-color 0.25s ease, 
+                 box-shadow 0.25s ease,
+                 color 0.25s ease,
+                 transform 0.15s ease,
+                 opacity 0.2s ease;
+   }
+ 
+   /* Theme transition fade effect */
+   html {
+     transition: opacity 0.3s ease;
+   }
+ 
+   html.theme-transitioning {
+     opacity: 0.92;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-background;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/80;
+  }
+}
+
+@layer components {
+  /* Neon Glow Text */
+  .text-glow {
+     text-shadow: 0 0 8px hsl(var(--primary) / 0.3);
+  }
+
+  .text-glow-strong {
+     text-shadow: 0 0 12px hsl(var(--primary) / 0.35);
+  }
+
+  /* Neon Glow Box */
+  .box-glow {
+     box-shadow: 0 0 10px hsl(var(--primary) / 0.2);
+  }
+
+  .box-glow-hover {
+     transition: box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .box-glow-hover:hover {
+     box-shadow: 0 0 15px hsl(var(--primary) / 0.25);
+  }
+
+  /* Gradient Text */
+  .gradient-text {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Gradient Background */
+  .gradient-bg {
+    background: var(--gradient-dark);
+  }
+
+  /* Hide default cursor for custom cursor */
+  body.custom-cursor * {
+    cursor: none !important;
+  }
+ 
+   /* Premium card styling */
+   .premium-card {
+     @apply bg-card border border-border;
+     backdrop-filter: blur(4px);
+   }
+ 
+   /* Glass effect - limited blur for modals only */
+   .glass-effect {
+     backdrop-filter: blur(4px);
+     @apply bg-card;
+   }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
