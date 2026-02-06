@@ -1,7 +1,14 @@
-import { lazy, Suspense, useMemo } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
+
+// Import event background images
+import newYearBg from "@/assets/event-bg-new-year.jpg";
+import ramadanBg from "@/assets/event-bg-ramadan.jpg";
+import eidFitrBg from "@/assets/event-bg-eid-fitr.jpg";
+import independenceBg from "@/assets/event-bg-independence.jpg";
+import christmasBg from "@/assets/event-bg-christmas.jpg";
 
 // Lazy load heavy visual components
 const FireworksAnimation = lazy(() => import("./event-ornaments/FireworksAnimation"));
@@ -15,6 +22,16 @@ const MosqueAnimation = lazy(() => import("./event-ornaments/MosqueAnimation"));
 const FlagAnimation = lazy(() => import("./event-ornaments/FlagAnimation"));
 const HeartAnimation = lazy(() => import("./event-ornaments/HeartAnimation"));
 
+// Event background image mapping
+const EVENT_BACKGROUND_IMAGES: Partial<Record<EventThemeType, string>> = {
+  "new-year": newYearBg,
+  "ramadan": ramadanBg,
+  "eid-fitr": eidFitrBg,
+  "eid-adha": eidFitrBg, // Reuse eid-fitr image
+  "independence-day": independenceBg,
+  "christmas": christmasBg,
+};
+
 // Event background configurations
 interface EventBackgroundConfig {
   gradient: string;
@@ -23,6 +40,7 @@ interface EventBackgroundConfig {
   secondaryGlow?: string;
   pattern?: "stars" | "dots" | "islamic" | "festive";
   animatedElements?: React.ReactNode;
+  backgroundImage?: string;
 }
 
 // Full visual configurations for each event
@@ -33,6 +51,7 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(45, 100%, 50%)",
     secondaryGlow: "hsl(280, 80%, 60%)",
     pattern: "festive",
+    backgroundImage: newYearBg,
     animatedElements: (
       <>
         <FireworksAnimation colors={["#FFD700", "#FF6B6B", "#4ECDC4", "#A855F7", "#F59E0B"]} />
@@ -46,6 +65,7 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(45, 90%, 55%)",
     secondaryGlow: "hsl(160, 70%, 40%)",
     pattern: "islamic",
+    backgroundImage: ramadanBg,
     animatedElements: (
       <>
         <MosqueAnimation position="center" opacity={0.15} />
@@ -61,6 +81,7 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(120, 60%, 50%)",
     secondaryGlow: "hsl(45, 90%, 55%)",
     pattern: "festive",
+    backgroundImage: eidFitrBg,
     animatedElements: (
       <>
         <KetupatOrnaments count={12} />
@@ -132,6 +153,7 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(0, 80%, 50%)",
     secondaryGlow: "hsl(0, 0%, 100%)",
     pattern: "festive",
+    backgroundImage: independenceBg,
     animatedElements: (
       <>
         <FlagAnimation position="both" />
@@ -157,6 +179,7 @@ const EVENT_BACKGROUNDS: Partial<Record<EventThemeType, EventBackgroundConfig>> 
     glowColor: "hsl(0, 75%, 55%)",
     secondaryGlow: "hsl(140, 60%, 45%)",
     pattern: "festive",
+    backgroundImage: christmasBg,
     animatedElements: (
       <>
         <SnowflakeAnimation count={60} />
@@ -341,6 +364,41 @@ const GlowEffects = ({ config }: { config: EventBackgroundConfig }) => (
   </>
 );
 
+// Background image component with lazy loading
+const BackgroundImage = ({ 
+  src, 
+  alt, 
+  onLoad 
+}: { 
+  src: string; 
+  alt: string; 
+  onLoad?: () => void;
+}) => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  return (
+    <motion.img
+      src={src}
+      alt={alt}
+      className="absolute inset-0 w-full h-full object-cover"
+      initial={{ opacity: 0, scale: 1.05 }}
+      animate={{ 
+        opacity: isLoaded ? 1 : 0, 
+        scale: isLoaded ? 1 : 1.05 
+      }}
+      transition={{ 
+        duration: 1.2, 
+        ease: "easeOut" as const
+      }}
+      onLoad={() => {
+        setIsLoaded(true);
+        onLoad?.();
+      }}
+      loading="lazy"
+    />
+  );
+};
+
 interface EventHeroBackgroundProps {
   children?: React.ReactNode;
   showDefaultVideo?: boolean;
@@ -350,10 +408,12 @@ interface EventHeroBackgroundProps {
 const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded }: EventHeroBackgroundProps) => {
   const { currentEventTheme } = useEventTheme();
   const { videoQuality, shouldReduceAnimations, isLiteMode } = usePerformance();
+  const [bgImageLoaded, setBgImageLoaded] = useState(false);
 
   // Check if we should show event UI instead of video
   const isEventActive = currentEventTheme !== "default";
   const eventConfig = isEventActive ? EVENT_BACKGROUNDS[currentEventTheme] : null;
+  const eventBgImage = isEventActive ? EVENT_BACKGROUND_IMAGES[currentEventTheme] : null;
 
   // Show video only when: default theme + video enabled + not in lite mode on mobile
   const shouldShowVideo = !isEventActive && showDefaultVideo && videoQuality !== "disabled";
@@ -371,6 +431,38 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
     return eventConfig.animatedElements;
   }, [eventConfig, shouldReduceAnimations, isLiteMode]);
 
+  // Smooth transition variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { 
+      opacity: 1,
+      transition: {
+        duration: 0.8,
+        ease: "easeOut" as const,
+        staggerChildren: 0.15,
+      }
+    },
+    exit: { 
+      opacity: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeInOut" as const
+      }
+    }
+  };
+
+  const childVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: "easeOut" as const
+      }
+    }
+  };
+
   return (
     <div className="absolute inset-0 z-0 overflow-hidden">
       <AnimatePresence mode="wait">
@@ -378,10 +470,10 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
           /* Default mode: Show background video */
           <motion.div
             key="video-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="absolute inset-0"
           >
             <video
@@ -395,47 +487,72 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
               <source src="/hero-video.mp4" type="video/mp4" />
             </video>
             {/* Default video overlay */}
-            <div 
+            <motion.div 
               className="absolute inset-0"
               style={{ background: "rgba(0, 0, 0, 0.85)" }}
+              variants={childVariants}
             />
           </motion.div>
         ) : eventConfig ? (
           /* Event mode: Show full themed background */
           <motion.div
             key={`event-bg-${currentEventTheme}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6 }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="absolute inset-0"
           >
-            {/* Base gradient background */}
-            <div 
+            {/* Background image (if available) */}
+            {eventBgImage && (
+              <BackgroundImage 
+                src={eventBgImage} 
+                alt={`${currentEventTheme} background`}
+                onLoad={() => setBgImageLoaded(true)}
+              />
+            )}
+            
+            {/* Base gradient background (fallback or overlay) */}
+            <motion.div 
               className="absolute inset-0"
-              style={{ background: eventConfig.gradient }}
+              style={{ 
+                background: eventBgImage 
+                  ? `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7))`
+                  : eventConfig.gradient 
+              }}
+              variants={childVariants}
             />
             
             {/* Overlay gradient for depth */}
             {eventConfig.overlayGradient && (
-              <div 
+              <motion.div 
                 className="absolute inset-0"
                 style={{ background: eventConfig.overlayGradient }}
+                variants={childVariants}
               />
             )}
             
             {/* Pattern overlay */}
-            <PatternOverlay pattern={eventConfig.pattern} />
+            <motion.div variants={childVariants}>
+              <PatternOverlay pattern={eventConfig.pattern} />
+            </motion.div>
             
             {/* Glow effects */}
-            <GlowEffects config={eventConfig} />
+            <motion.div variants={childVariants}>
+              <GlowEffects config={eventConfig} />
+            </motion.div>
             
             {/* Animated elements */}
             {animatedElements && (
               <Suspense fallback={null}>
-                <div className="absolute inset-0 pointer-events-none">
+                <motion.div 
+                  className="absolute inset-0 pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5, duration: 1 }}
+                >
                   {animatedElements}
-                </div>
+                </motion.div>
               </Suspense>
             )}
           </motion.div>
@@ -443,9 +560,10 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
           /* Fallback: Solid background */
           <motion.div
             key="fallback-bg"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             className="absolute inset-0 bg-background"
           />
         )}
@@ -455,5 +573,4 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
     </div>
   );
 };
-
 export default EventHeroBackground;
