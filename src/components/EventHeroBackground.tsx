@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState, useEffect } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
@@ -28,6 +28,53 @@ import mothersDayBg from "@/assets/event-bg-mothers-day.jpg";
 import fathersDayBg from "@/assets/event-bg-fathers-day.jpg";
 import laborDayBg from "@/assets/event-bg-labor-day.jpg";
 import christmasBg from "@/assets/event-bg-christmas.jpg";
+
+// ========== IMAGE CACHE SYSTEM ==========
+// Global cache to persist across component re-renders
+const imageCache = new Map<string, HTMLImageElement>();
+const loadingPromises = new Map<string, Promise<HTMLImageElement>>();
+
+// Preload and cache an image
+const preloadImage = (src: string): Promise<HTMLImageElement> => {
+  // Return cached image immediately
+  if (imageCache.has(src)) {
+    return Promise.resolve(imageCache.get(src)!);
+  }
+
+  // Return existing loading promise to avoid duplicate requests
+  if (loadingPromises.has(src)) {
+    return loadingPromises.get(src)!;
+  }
+
+  // Create new loading promise
+  const promise = new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.src = src;
+    
+    img.onload = () => {
+      imageCache.set(src, img);
+      loadingPromises.delete(src);
+      resolve(img);
+    };
+    
+    img.onerror = () => {
+      loadingPromises.delete(src);
+      reject(new Error(`Failed to load image: ${src}`));
+    };
+  });
+
+  loadingPromises.set(src, promise);
+  return promise;
+};
+
+// Check if image is cached
+const isImageCached = (src: string): boolean => imageCache.has(src);
+
+// Get cache stats for debugging
+const getCacheStats = () => ({
+  cachedImages: imageCache.size,
+  loadingImages: loadingPromises.size,
+});
 
 // Lazy load heavy visual components
 const FireworksAnimation = lazy(() => import("./event-ornaments/FireworksAnimation"));
@@ -434,7 +481,7 @@ const BackgroundSkeleton = () => (
   </div>
 );
 
-// Background image component with parallax and lazy loading
+// Background image component with parallax, lazy loading, and caching
 const ParallaxBackgroundImage = ({ 
   src, 
   alt, 
@@ -446,9 +493,11 @@ const ParallaxBackgroundImage = ({
   onLoad?: () => void;
   parallaxEnabled?: boolean;
 }) => {
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(() => isImageCached(src));
   const [hasError, setHasError] = useState(false);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(() => 
+    isImageCached(src) ? src : null
+  );
   
   const { style: parallaxStyle } = useParallax({ 
     speed: 0.25, 
@@ -456,29 +505,29 @@ const ParallaxBackgroundImage = ({
     enabled: parallaxEnabled && isLoaded,
   });
 
-  // Preload image
+  // Load image with cache
   useEffect(() => {
-    setIsLoaded(false);
-    setHasError(false);
-    
-    const img = new Image();
-    img.src = src;
-    
-    img.onload = () => {
+    // If already cached, use immediately
+    if (isImageCached(src)) {
       setImageSrc(src);
       setIsLoaded(true);
       onLoad?.();
-    };
-    
-    img.onerror = () => {
-      console.error(`Failed to load image: ${src}`);
-      setHasError(true);
-    };
+      return;
+    }
 
-    return () => {
-      img.onload = null;
-      img.onerror = null;
-    };
+    setIsLoaded(false);
+    setHasError(false);
+    
+    preloadImage(src)
+      .then(() => {
+        setImageSrc(src);
+        setIsLoaded(true);
+        onLoad?.();
+      })
+      .catch((error) => {
+        console.error(error);
+        setHasError(true);
+      });
   }, [src, onLoad]);
 
   return (
@@ -504,7 +553,7 @@ const ParallaxBackgroundImage = ({
           className="absolute inset-0 overflow-hidden"
           initial={{ opacity: 0 }}
           animate={{ opacity: isLoaded ? 1 : 0 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          transition={{ duration: isImageCached(src) ? 0.3 : 1.2, ease: "easeOut" }}
         >
           <motion.img
             src={imageSrc}
@@ -516,12 +565,12 @@ const ParallaxBackgroundImage = ({
               top: "-10%",
               height: "120%",
             }}
-            initial={{ scale: 1.1 }}
+            initial={{ scale: isImageCached(src) ? 1.05 : 1.1 }}
             animate={{ 
               scale: isLoaded ? 1.05 : 1.1,
             }}
             transition={{ 
-              duration: 1.5, 
+              duration: isImageCached(src) ? 0.3 : 1.5, 
               ease: "easeOut"
             }}
           />
@@ -535,6 +584,35 @@ const ParallaxBackgroundImage = ({
   );
 };
 
+// Hook to preload adjacent event images for faster switching
+const usePreloadAdjacentImages = (currentTheme: EventThemeType) => {
+  useEffect(() => {
+    // Get all event themes with images
+    const themes = Object.entries(EVENT_BACKGROUND_IMAGES)
+      .filter(([_, src]) => src !== null)
+      .map(([theme]) => theme as EventThemeType);
+    
+    const currentIndex = themes.indexOf(currentTheme);
+    if (currentIndex === -1) return;
+
+    // Preload next and previous themes
+    const adjacentIndices = [
+      (currentIndex + 1) % themes.length,
+      (currentIndex - 1 + themes.length) % themes.length,
+    ];
+
+    adjacentIndices.forEach((index) => {
+      const theme = themes[index];
+      const src = EVENT_BACKGROUND_IMAGES[theme];
+      if (src && !isImageCached(src)) {
+        preloadImage(src).catch(() => {
+          // Silent fail for preloading
+        });
+      }
+    });
+  }, [currentTheme]);
+};
+
 interface EventHeroBackgroundProps {
   children?: React.ReactNode;
   showDefaultVideo?: boolean;
@@ -545,6 +623,9 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
   const { currentEventTheme } = useEventTheme();
   const { videoQuality, shouldReduceAnimations, isLiteMode } = usePerformance();
   const [bgImageLoaded, setBgImageLoaded] = useState(false);
+
+  // Preload adjacent event images for faster switching
+  usePreloadAdjacentImages(currentEventTheme);
 
   // Check if we should show event UI instead of video
   const isEventActive = currentEventTheme !== "default";
