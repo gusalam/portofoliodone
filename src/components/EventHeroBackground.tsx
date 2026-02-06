@@ -1,8 +1,9 @@
-import { lazy, Suspense, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
 import useParallax from "@/hooks/useParallax";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // Import all event background images
 import newYearBg from "@/assets/event-bg-new-year.jpg";
@@ -403,6 +404,36 @@ const GlowEffects = ({ config }: { config: EventBackgroundConfig }) => (
   </>
 );
 
+// Loading skeleton component for background image
+const BackgroundSkeleton = () => (
+  <div className="absolute inset-0 overflow-hidden">
+    <Skeleton className="absolute inset-0 w-full h-full bg-gradient-to-br from-muted/80 via-muted/60 to-muted/80" />
+    {/* Animated shimmer effect */}
+    <motion.div
+      className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+      initial={{ x: "-100%" }}
+      animate={{ x: "100%" }}
+      transition={{
+        duration: 1.5,
+        repeat: Infinity,
+        ease: "linear",
+      }}
+    />
+    {/* Pulse glow effect */}
+    <motion.div
+      className="absolute inset-0 bg-gradient-radial from-primary/5 via-transparent to-transparent"
+      animate={{
+        opacity: [0.3, 0.6, 0.3],
+      }}
+      transition={{
+        duration: 2,
+        repeat: Infinity,
+        ease: "easeInOut",
+      }}
+    />
+  </div>
+);
+
 // Background image component with parallax and lazy loading
 const ParallaxBackgroundImage = ({ 
   src, 
@@ -416,48 +447,91 @@ const ParallaxBackgroundImage = ({
   parallaxEnabled?: boolean;
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasError, setHasError] = useState(false);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  
   const { style: parallaxStyle } = useParallax({ 
     speed: 0.25, 
     maxOffset: 100,
     enabled: parallaxEnabled && isLoaded,
   });
 
+  // Preload image
+  useEffect(() => {
+    setIsLoaded(false);
+    setHasError(false);
+    
+    const img = new Image();
+    img.src = src;
+    
+    img.onload = () => {
+      setImageSrc(src);
+      setIsLoaded(true);
+      onLoad?.();
+    };
+    
+    img.onerror = () => {
+      console.error(`Failed to load image: ${src}`);
+      setHasError(true);
+    };
+
+    return () => {
+      img.onload = null;
+      img.onerror = null;
+    };
+  }, [src, onLoad]);
+
   return (
-    <motion.div
-      className="absolute inset-0 overflow-hidden"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: isLoaded ? 1 : 0 }}
-      transition={{ duration: 1.2, ease: "easeOut" }}
-    >
-      <motion.img
-        src={src}
-        alt={alt}
-        className="absolute inset-0 w-full h-full object-cover"
-        style={{
-          ...parallaxStyle,
-          // Extend image to cover parallax movement
-          top: "-10%",
-          height: "120%",
-        }}
-        initial={{ scale: 1.1 }}
-        animate={{ 
-          scale: isLoaded ? 1.05 : 1.1,
-        }}
-        transition={{ 
-          duration: 1.5, 
-          ease: "easeOut"
-        }}
-        onLoad={() => {
-          setIsLoaded(true);
-          onLoad?.();
-        }}
-        loading="lazy"
-      />
-      {/* Overlay gradient for better text readability */}
-      <div 
-        className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"
-      />
-    </motion.div>
+    <>
+      {/* Loading skeleton - shown until image loads */}
+      <AnimatePresence>
+        {!isLoaded && !hasError && (
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 z-10"
+          >
+            <BackgroundSkeleton />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Actual image */}
+      {imageSrc && !hasError && (
+        <motion.div
+          className="absolute inset-0 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isLoaded ? 1 : 0 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
+          <motion.img
+            src={imageSrc}
+            alt={alt}
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              ...parallaxStyle,
+              // Extend image to cover parallax movement
+              top: "-10%",
+              height: "120%",
+            }}
+            initial={{ scale: 1.1 }}
+            animate={{ 
+              scale: isLoaded ? 1.05 : 1.1,
+            }}
+            transition={{ 
+              duration: 1.5, 
+              ease: "easeOut"
+            }}
+          />
+          {/* Overlay gradient for better text readability */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/20 to-black/60"
+          />
+        </motion.div>
+      )}
+    </>
   );
 };
 
