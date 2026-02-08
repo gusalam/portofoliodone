@@ -22,17 +22,19 @@ export interface AdvancedMusicPlayerRef {
 interface EventAudioConfig {
   name: string;
   nameId: string;
+  src: string;
   volume: number;
   loop: boolean;
   fadeInDuration: number;
   fadeOutDuration: number;
 }
 
-// Event audio configs - using background-music.mp3 as fallback since event audio files may not exist
+// Event audio files - stored in public/audio/event/
 const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "new-year": {
     name: "New Year Celebration",
     nameId: "Perayaan Tahun Baru",
+    src: "/audio/event/new-year.mp3",
     volume: 0.35,
     loop: true,
     fadeInDuration: 1500,
@@ -41,6 +43,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "ramadan": {
     name: "Ramadan Ambience",
     nameId: "Suasana Ramadhan",
+    src: "/audio/event/ramadan.mp3",
     volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
@@ -49,6 +52,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "eid-fitr": {
     name: "Eid Celebration",
     nameId: "Perayaan Idul Fitri",
+    src: "/audio/event/eid-fitr.mp3",
     volume: 0.35,
     loop: true,
     fadeInDuration: 1500,
@@ -57,6 +61,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "eid-adha": {
     name: "Eid Adha Ambience",
     nameId: "Suasana Idul Adha",
+    src: "/audio/event/eid-adha.mp3",
     volume: 0.3,
     loop: true,
     fadeInDuration: 1500,
@@ -65,6 +70,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "independence-day": {
     name: "Independence Day",
     nameId: "Hari Kemerdekaan",
+    src: "/audio/event/independence-day.mp3",
     volume: 0.35,
     loop: true,
     fadeInDuration: 1500,
@@ -73,6 +79,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "christmas": {
     name: "Christmas Bells",
     nameId: "Lonceng Natal",
+    src: "/audio/event/christmas.mp3",
     volume: 0.3,
     loop: true,
     fadeInDuration: 2000,
@@ -81,6 +88,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "valentine": {
     name: "Valentine Romance",
     nameId: "Romantis Valentine",
+    src: "/audio/event/valentine.mp3",
     volume: 0.25,
     loop: true,
     fadeInDuration: 1500,
@@ -89,6 +97,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "halloween": {
     name: "Spooky Ambience",
     nameId: "Suasana Menyeramkan",
+    src: "/audio/event/halloween.mp3",
     volume: 0.3,
     loop: true,
     fadeInDuration: 1500,
@@ -97,6 +106,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "maulid-nabi": {
     name: "Islamic Celebration",
     nameId: "Perayaan Islami",
+    src: "/audio/event/maulid-nabi.mp3",
     volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
@@ -105,6 +115,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "isra-miraj": {
     name: "Night Journey",
     nameId: "Perjalanan Malam",
+    src: "/audio/event/isra-miraj.mp3",
     volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
@@ -113,6 +124,7 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "islamic-new-year": {
     name: "Islamic New Year",
     nameId: "Tahun Baru Islam",
+    src: "/audio/event/islamic-new-year.mp3",
     volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
@@ -124,6 +136,26 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
 const DEFAULT_AUDIO_SRC = "/background-music.mp3";
 const DEFAULT_VOLUME = 0.3;
 const DEFAULT_FADE_DURATION = 800;
+
+// Cache for audio availability check
+const audioAvailabilityCache = new Map<string, boolean>();
+
+// Check if audio file exists
+async function checkAudioExists(src: string): Promise<boolean> {
+  if (audioAvailabilityCache.has(src)) {
+    return audioAvailabilityCache.get(src)!;
+  }
+  
+  try {
+    const response = await fetch(src, { method: "HEAD" });
+    const exists = response.ok;
+    audioAvailabilityCache.set(src, exists);
+    return exists;
+  } catch {
+    audioAvailabilityCache.set(src, false);
+    return false;
+  }
+}
 
 // Smooth fade audio utility with easing
 function fadeAudio(
@@ -206,26 +238,26 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [currentTrackName, setCurrentTrackName] = useState({ en: "Background Music", id: "Musik Latar" });
 
-  // Get current audio config
-  const getAudioConfig = useCallback((theme: EventThemeType) => {
-    if (isEventActive && EVENT_AUDIO_CONFIG[theme]) {
-      return {
-        ...EVENT_AUDIO_CONFIG[theme]!,
-        src: DEFAULT_AUDIO_SRC, // Use default audio since event-specific files may not exist
-      };
+  const [currentAudioSrc, setCurrentAudioSrc] = useState<string>(DEFAULT_AUDIO_SRC);
+
+  // Get current audio config with fallback
+  const getAudioConfig = useCallback((theme: EventThemeType): EventAudioConfig => {
+    const eventConfig = EVENT_AUDIO_CONFIG[theme];
+    if (isEventActive && eventConfig) {
+      return eventConfig;
     }
     return {
       name: "Background Music",
       nameId: "Musik Latar",
+      src: DEFAULT_AUDIO_SRC,
       volume: DEFAULT_VOLUME,
       loop: true,
       fadeInDuration: DEFAULT_FADE_DURATION,
       fadeOutDuration: DEFAULT_FADE_DURATION,
-      src: DEFAULT_AUDIO_SRC,
     };
   }, [isEventActive]);
 
-  // Initialize audio
+  // Initialize default audio
   useEffect(() => {
     const audio = new Audio(DEFAULT_AUDIO_SRC);
     audio.loop = true;
@@ -233,7 +265,6 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
     audio.preload = "auto";
     audioRef.current = audio;
 
-    // Update track name on init
     const config = getAudioConfig(currentEventTheme);
     setCurrentTrackName({ en: config.name, id: config.nameId });
 
@@ -244,49 +275,98 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
     };
   }, []);
 
-  // Handle event theme changes with crossfade
+  // Switch audio source with crossfade
+  const switchAudioSource = useCallback(async (newSrc: string, config: EventAudioConfig) => {
+    if (!audioRef.current || !isPlaying) return;
+    
+    setIsTransitioning(true);
+    
+    // Fade out current audio
+    const currentAudio = audioRef.current;
+    crossfadeCleanupRef.current?.();
+    
+    crossfadeCleanupRef.current = fadeAudio(currentAudio, 0, config.fadeOutDuration, () => {
+      currentAudio.pause();
+      
+      // Create new audio with new source
+      const newAudio = new Audio(newSrc);
+      newAudio.loop = config.loop;
+      newAudio.volume = 0;
+      newAudio.preload = "auto";
+      audioRef.current = newAudio;
+      
+      // Play and fade in
+      newAudio.play().then(() => {
+        setCurrentAudioSrc(newSrc);
+        fadeAudio(newAudio, isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME), config.fadeInDuration, () => {
+          setIsTransitioning(false);
+        });
+      }).catch(() => {
+        setIsTransitioning(false);
+      });
+    });
+  }, [isPlaying, isMuted, volume]);
+
+  // Handle event theme changes with crossfade to different audio source
   useEffect(() => {
     if (!hasUserInteracted || !isPlaying) return;
     if (previousThemeRef.current === currentEventTheme) return;
 
     const config = getAudioConfig(currentEventTheme);
-    const previousConfig = previousThemeRef.current 
-      ? getAudioConfig(previousThemeRef.current)
-      : null;
-
+    
     // Update track name
     setCurrentTrackName({ en: config.name, id: config.nameId });
 
-    // Clean up previous crossfade
-    crossfadeCleanupRef.current?.();
-
-    // If theme changed and we're playing, do a smooth volume transition
-    if (audioRef.current && !audioRef.current.paused) {
-      setIsTransitioning(true);
+    // Check if audio source should change
+    const checkAndSwitchAudio = async () => {
+      // Check if event-specific audio exists
+      const eventAudioExists = await checkAudioExists(config.src);
+      const targetSrc = eventAudioExists ? config.src : DEFAULT_AUDIO_SRC;
       
-      const crossfadeDuration = Math.max(
-        previousConfig?.fadeOutDuration || DEFAULT_FADE_DURATION,
-        config.fadeInDuration
-      );
+      // If source is different, do crossfade switch
+      if (targetSrc !== currentAudioSrc) {
+        await switchAudioSource(targetSrc, config);
+      } else {
+        // Same source, just adjust volume
+        crossfadeCleanupRef.current?.();
+        if (audioRef.current && !audioRef.current.paused) {
+          setIsTransitioning(true);
+          crossfadeCleanupRef.current = fadeAudio(
+            audioRef.current,
+            isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
+            config.fadeInDuration,
+            () => setIsTransitioning(false)
+          );
+        }
+      }
+    };
 
-      // Smooth volume transition for theme change
-      crossfadeCleanupRef.current = fadeAudio(
-        audioRef.current,
-        isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
-        crossfadeDuration,
-        () => setIsTransitioning(false)
-      );
-    }
-
+    checkAndSwitchAudio();
     previousThemeRef.current = currentEventTheme;
-  }, [currentEventTheme, hasUserInteracted, isPlaying, getAudioConfig, isMuted, volume]);
+  }, [currentEventTheme, hasUserInteracted, isPlaying, getAudioConfig, isMuted, volume, currentAudioSrc, switchAudioSource]);
 
-  const play = useCallback(() => {
+  const play = useCallback(async () => {
     setHasUserInteracted(true);
     previousThemeRef.current = currentEventTheme;
     
     const config = getAudioConfig(currentEventTheme);
     setCurrentTrackName({ en: config.name, id: config.nameId });
+
+    // Check if event audio exists, fallback to default
+    const eventAudioExists = await checkAudioExists(config.src);
+    const targetSrc = eventAudioExists ? config.src : DEFAULT_AUDIO_SRC;
+
+    // If current audio has different source, switch it
+    if (audioRef.current?.src !== targetSrc && targetSrc !== currentAudioSrc) {
+      const newAudio = new Audio(targetSrc);
+      newAudio.loop = config.loop;
+      newAudio.volume = 0;
+      newAudio.preload = "auto";
+      
+      audioRef.current?.pause();
+      audioRef.current = newAudio;
+      setCurrentAudioSrc(targetSrc);
+    }
 
     if (audioRef.current) {
       audioRef.current.volume = 0;
@@ -299,7 +379,7 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
         );
       }).catch(console.error);
     }
-  }, [currentEventTheme, getAudioConfig, isMuted, volume]);
+  }, [currentEventTheme, getAudioConfig, isMuted, volume, currentAudioSrc]);
 
   const pause = useCallback(() => {
     const config = getAudioConfig(currentEventTheme);
