@@ -405,6 +405,7 @@ interface EventThemeContextType {
   currentEventTheme: EventThemeType;
   eventInfo: EventThemeInfo | undefined;
   isAutoMode: boolean;
+  isEventActive: boolean;
   setManualEventTheme: (theme: EventThemeType | null) => void;
   allEventThemes: EventThemeInfo[];
   detectedEvent: EventThemeType;
@@ -499,10 +500,14 @@ export const EventThemeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
   
+  // Determine if an event is currently active (not default)
+  const isEventActive = currentEventTheme !== "default";
+
   const value: EventThemeContextType = {
     currentEventTheme,
     eventInfo,
     isAutoMode,
+    isEventActive,
     setManualEventTheme,
     allEventThemes: EVENT_THEMES,
     detectedEvent,

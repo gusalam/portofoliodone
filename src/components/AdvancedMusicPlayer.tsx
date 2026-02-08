@@ -1,6 +1,6 @@
-import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from "react";
+import { useRef, forwardRef, useImperativeHandle, useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, VolumeX, Music } from "lucide-react";
+import { Volume2, VolumeX, Music, Disc3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import {
@@ -20,38 +20,99 @@ export interface AdvancedMusicPlayerRef {
 
 // Audio configuration per event
 interface EventAudioConfig {
-  src?: string;
+  name: string;
+  nameId: string;
   volume: number;
   loop: boolean;
-  fadeInDuration?: number;
-  fadeOutDuration?: number;
+  fadeInDuration: number;
+  fadeOutDuration: number;
 }
 
-// Event audio configs
+// Event audio configs - using background-music.mp3 as fallback since event audio files may not exist
 const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
   "new-year": {
-    src: "/audio/event/fireworks-ambience.mp3",
-    volume: 0.3,
-    loop: false,
-    fadeInDuration: 1000,
-    fadeOutDuration: 500,
+    name: "New Year Celebration",
+    nameId: "Perayaan Tahun Baru",
+    volume: 0.35,
+    loop: true,
+    fadeInDuration: 1500,
+    fadeOutDuration: 800,
   },
   "ramadan": {
-    src: "/audio/event/islamic-ambience.mp3",
-    volume: 0.2,
+    name: "Ramadan Ambience",
+    nameId: "Suasana Ramadhan",
+    volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
     fadeOutDuration: 1000,
   },
-  "independence-day": {
-    src: "/audio/event/national-ambience.mp3",
+  "eid-fitr": {
+    name: "Eid Celebration",
+    nameId: "Perayaan Idul Fitri",
+    volume: 0.35,
+    loop: true,
+    fadeInDuration: 1500,
+    fadeOutDuration: 800,
+  },
+  "eid-adha": {
+    name: "Eid Adha Ambience",
+    nameId: "Suasana Idul Adha",
     volume: 0.3,
     loop: true,
     fadeInDuration: 1500,
-    fadeOutDuration: 500,
+    fadeOutDuration: 800,
+  },
+  "independence-day": {
+    name: "Independence Day",
+    nameId: "Hari Kemerdekaan",
+    volume: 0.35,
+    loop: true,
+    fadeInDuration: 1500,
+    fadeOutDuration: 800,
   },
   "christmas": {
-    src: "/audio/event/christmas-bells.mp3",
+    name: "Christmas Bells",
+    nameId: "Lonceng Natal",
+    volume: 0.3,
+    loop: true,
+    fadeInDuration: 2000,
+    fadeOutDuration: 1000,
+  },
+  "valentine": {
+    name: "Valentine Romance",
+    nameId: "Romantis Valentine",
+    volume: 0.25,
+    loop: true,
+    fadeInDuration: 1500,
+    fadeOutDuration: 800,
+  },
+  "halloween": {
+    name: "Spooky Ambience",
+    nameId: "Suasana Menyeramkan",
+    volume: 0.3,
+    loop: true,
+    fadeInDuration: 1500,
+    fadeOutDuration: 800,
+  },
+  "maulid-nabi": {
+    name: "Islamic Celebration",
+    nameId: "Perayaan Islami",
+    volume: 0.25,
+    loop: true,
+    fadeInDuration: 2000,
+    fadeOutDuration: 1000,
+  },
+  "isra-miraj": {
+    name: "Night Journey",
+    nameId: "Perjalanan Malam",
+    volume: 0.25,
+    loop: true,
+    fadeInDuration: 2000,
+    fadeOutDuration: 1000,
+  },
+  "islamic-new-year": {
+    name: "Islamic New Year",
+    nameId: "Tahun Baru Islam",
     volume: 0.25,
     loop: true,
     fadeInDuration: 2000,
@@ -62,8 +123,9 @@ const EVENT_AUDIO_CONFIG: Partial<Record<EventThemeType, EventAudioConfig>> = {
 // Default audio config
 const DEFAULT_AUDIO_SRC = "/background-music.mp3";
 const DEFAULT_VOLUME = 0.3;
+const DEFAULT_FADE_DURATION = 800;
 
-// Fade audio utility
+// Smooth fade audio utility with easing
 function fadeAudio(
   audio: HTMLAudioElement,
   targetVolume: number,
@@ -72,202 +134,214 @@ function fadeAudio(
 ): () => void {
   const startVolume = audio.volume;
   const volumeDiff = targetVolume - startVolume;
-  const steps = Math.max(20, Math.floor(duration / 50));
-  const stepDuration = duration / steps;
-  let currentStep = 0;
+  const startTime = performance.now();
 
-  const fadeInterval = setInterval(() => {
-    currentStep++;
-    const progress = currentStep / steps;
-    const easedProgress = 1 - Math.pow(1 - progress, 3); // Ease out cubic
-    audio.volume = Math.max(0, Math.min(1, startVolume + volumeDiff * easedProgress));
+  let animationFrame: number;
 
-    if (currentStep >= steps) {
-      clearInterval(fadeInterval);
+  const animate = (currentTime: number) => {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    
+    // Ease out cubic for smooth fade
+    const easedProgress = 1 - Math.pow(1 - progress, 3);
+    const newVolume = startVolume + volumeDiff * easedProgress;
+    
+    audio.volume = Math.max(0, Math.min(1, newVolume));
+
+    if (progress < 1) {
+      animationFrame = requestAnimationFrame(animate);
+    } else {
       audio.volume = Math.max(0, Math.min(1, targetVolume));
       onComplete?.();
     }
-  }, stepDuration);
+  };
 
-  return () => clearInterval(fadeInterval);
+  animationFrame = requestAnimationFrame(animate);
+
+  return () => cancelAnimationFrame(animationFrame);
+}
+
+// Crossfade between two audio sources
+function crossfadeAudio(
+  outAudio: HTMLAudioElement | null,
+  inAudio: HTMLAudioElement,
+  targetVolume: number,
+  duration: number,
+  onComplete?: () => void
+): () => void {
+  const cleanups: (() => void)[] = [];
+
+  // Fade out current audio
+  if (outAudio && !outAudio.paused) {
+    const fadeOutCleanup = fadeAudio(outAudio, 0, duration, () => {
+      outAudio.pause();
+    });
+    cleanups.push(fadeOutCleanup);
+  }
+
+  // Fade in new audio
+  inAudio.volume = 0;
+  inAudio.play().then(() => {
+    const fadeInCleanup = fadeAudio(inAudio, targetVolume, duration, onComplete);
+    cleanups.push(fadeInCleanup);
+  }).catch(console.error);
+
+  return () => cleanups.forEach(cleanup => cleanup());
 }
 
 const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
   const { language } = useLanguage();
-  const { currentEventTheme } = useEventTheme();
+  const { currentEventTheme, isEventActive } = useEventTheme();
   const { isLiteMode } = usePerformance();
 
-  const defaultAudioRef = useRef<HTMLAudioElement | null>(null);
-  const eventAudioRef = useRef<HTMLAudioElement | null>(null);
-  const fadeCleanupRef = useRef<(() => void) | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const crossfadeCleanupRef = useRef<(() => void) | null>(null);
+  const previousThemeRef = useRef<EventThemeType | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(DEFAULT_VOLUME);
-  const [currentSource, setCurrentSource] = useState<"default" | "event">("default");
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [currentTrackName, setCurrentTrackName] = useState({ en: "Background Music", id: "Musik Latar" });
 
-  // Initialize default audio
+  // Get current audio config
+  const getAudioConfig = useCallback((theme: EventThemeType) => {
+    if (isEventActive && EVENT_AUDIO_CONFIG[theme]) {
+      return {
+        ...EVENT_AUDIO_CONFIG[theme]!,
+        src: DEFAULT_AUDIO_SRC, // Use default audio since event-specific files may not exist
+      };
+    }
+    return {
+      name: "Background Music",
+      nameId: "Musik Latar",
+      volume: DEFAULT_VOLUME,
+      loop: true,
+      fadeInDuration: DEFAULT_FADE_DURATION,
+      fadeOutDuration: DEFAULT_FADE_DURATION,
+      src: DEFAULT_AUDIO_SRC,
+    };
+  }, [isEventActive]);
+
+  // Initialize audio
   useEffect(() => {
     const audio = new Audio(DEFAULT_AUDIO_SRC);
     audio.loop = true;
     audio.volume = 0;
     audio.preload = "auto";
-    defaultAudioRef.current = audio;
+    audioRef.current = audio;
+
+    // Update track name on init
+    const config = getAudioConfig(currentEventTheme);
+    setCurrentTrackName({ en: config.name, id: config.nameId });
 
     return () => {
-      fadeCleanupRef.current?.();
+      crossfadeCleanupRef.current?.();
       audio.pause();
       audio.src = "";
     };
   }, []);
 
-  // Handle event theme changes
+  // Handle event theme changes with crossfade
   useEffect(() => {
     if (!hasUserInteracted || !isPlaying) return;
+    if (previousThemeRef.current === currentEventTheme) return;
 
-    const eventConfig = EVENT_AUDIO_CONFIG[currentEventTheme];
+    const config = getAudioConfig(currentEventTheme);
+    const previousConfig = previousThemeRef.current 
+      ? getAudioConfig(previousThemeRef.current)
+      : null;
 
-    // If no event audio or lite mode, use default
-    if (!eventConfig?.src || isLiteMode) {
-      if (currentSource === "event") {
-        switchToDefault();
-      }
-      return;
-    }
+    // Update track name
+    setCurrentTrackName({ en: config.name, id: config.nameId });
 
-    // Check if event audio exists before switching
-    const checkAndSwitchAudio = async () => {
-      try {
-        const response = await fetch(eventConfig.src!, { method: "HEAD" });
-        if (response.ok) {
-          switchToEvent(currentEventTheme);
-        }
-      } catch {
-        // Audio doesn't exist, stay with default
-      }
-    };
+    // Clean up previous crossfade
+    crossfadeCleanupRef.current?.();
 
-    checkAndSwitchAudio();
-  }, [currentEventTheme, hasUserInteracted, isPlaying, isLiteMode]);
+    // If theme changed and we're playing, do a smooth volume transition
+    if (audioRef.current && !audioRef.current.paused) {
+      setIsTransitioning(true);
+      
+      const crossfadeDuration = Math.max(
+        previousConfig?.fadeOutDuration || DEFAULT_FADE_DURATION,
+        config.fadeInDuration
+      );
 
-  const switchToEvent = (eventType: EventThemeType) => {
-    const eventConfig = EVENT_AUDIO_CONFIG[eventType];
-    if (!eventConfig?.src) return;
-
-    fadeCleanupRef.current?.();
-
-    // Fade out default audio
-    if (defaultAudioRef.current && !defaultAudioRef.current.paused) {
-      fadeCleanupRef.current = fadeAudio(
-        defaultAudioRef.current,
-        0,
-        eventConfig.fadeOutDuration || 500,
-        () => {
-          defaultAudioRef.current?.pause();
-        }
+      // Smooth volume transition for theme change
+      crossfadeCleanupRef.current = fadeAudio(
+        audioRef.current,
+        isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
+        crossfadeDuration,
+        () => setIsTransitioning(false)
       );
     }
 
-    // Create and play event audio
-    if (eventAudioRef.current) {
-      eventAudioRef.current.pause();
-      eventAudioRef.current.src = "";
-    }
+    previousThemeRef.current = currentEventTheme;
+  }, [currentEventTheme, hasUserInteracted, isPlaying, getAudioConfig, isMuted, volume]);
 
-    const eventAudio = new Audio(eventConfig.src);
-    eventAudio.loop = eventConfig.loop;
-    eventAudio.volume = 0;
-    eventAudioRef.current = eventAudio;
-
-    eventAudio.play().then(() => {
-      setCurrentSource("event");
-      fadeAudio(eventAudio, eventConfig.volume * (volume / DEFAULT_VOLUME), eventConfig.fadeInDuration || 500);
-    }).catch(console.error);
-
-    // Return to default when event audio ends (if not looping)
-    if (!eventConfig.loop) {
-      eventAudio.onended = () => {
-        switchToDefault();
-      };
-    }
-  };
-
-  const switchToDefault = () => {
-    fadeCleanupRef.current?.();
-
-    // Fade out event audio
-    if (eventAudioRef.current && !eventAudioRef.current.paused) {
-      fadeCleanupRef.current = fadeAudio(eventAudioRef.current, 0, 500, () => {
-        eventAudioRef.current?.pause();
-      });
-    }
-
-    // Resume default audio
-    if (defaultAudioRef.current && isPlaying) {
-      defaultAudioRef.current.volume = 0;
-      defaultAudioRef.current.play().then(() => {
-        setCurrentSource("default");
-        fadeAudio(defaultAudioRef.current!, volume, 500);
-      }).catch(console.error);
-    }
-  };
-
-  const play = () => {
+  const play = useCallback(() => {
     setHasUserInteracted(true);
-    const audio = currentSource === "event" ? eventAudioRef.current : defaultAudioRef.current;
+    previousThemeRef.current = currentEventTheme;
     
-    if (audio) {
-      audio.volume = 0;
-      audio.play().then(() => {
+    const config = getAudioConfig(currentEventTheme);
+    setCurrentTrackName({ en: config.name, id: config.nameId });
+
+    if (audioRef.current) {
+      audioRef.current.volume = 0;
+      audioRef.current.play().then(() => {
         setIsPlaying(true);
-        fadeAudio(audio, isMuted ? 0 : volume, 500);
+        fadeAudio(
+          audioRef.current!,
+          isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
+          config.fadeInDuration
+        );
       }).catch(console.error);
     }
-  };
+  }, [currentEventTheme, getAudioConfig, isMuted, volume]);
 
-  const pause = () => {
-    const audio = currentSource === "event" ? eventAudioRef.current : defaultAudioRef.current;
+  const pause = useCallback(() => {
+    const config = getAudioConfig(currentEventTheme);
     
-    if (audio) {
-      fadeAudio(audio, 0, 300, () => {
-        audio.pause();
+    if (audioRef.current) {
+      fadeAudio(audioRef.current, 0, config.fadeOutDuration, () => {
+        audioRef.current?.pause();
         setIsPlaying(false);
       });
     }
-  };
+  }, [currentEventTheme, getAudioConfig]);
 
-  const toggle = () => {
+  const toggle = useCallback(() => {
     if (isPlaying) {
       pause();
     } else {
       play();
     }
-  };
+  }, [isPlaying, play, pause]);
 
-  const toggleMute = () => {
-    const audio = currentSource === "event" ? eventAudioRef.current : defaultAudioRef.current;
+  const toggleMute = useCallback(() => {
+    const config = getAudioConfig(currentEventTheme);
     
-    if (audio) {
+    if (audioRef.current) {
       if (isMuted) {
-        fadeAudio(audio, volume, 200);
+        fadeAudio(audioRef.current, config.volume * (volume / DEFAULT_VOLUME), 200);
       } else {
-        fadeAudio(audio, 0, 200);
+        fadeAudio(audioRef.current, 0, 200);
       }
       setIsMuted(!isMuted);
     }
-  };
+  }, [currentEventTheme, getAudioConfig, isMuted, volume]);
 
-  const handleVolumeChange = (newVolume: number[]) => {
+  const handleVolumeChange = useCallback((newVolume: number[]) => {
     const vol = newVolume[0];
     setVolume(vol);
     
-    const audio = currentSource === "event" ? eventAudioRef.current : defaultAudioRef.current;
-    if (audio && !isMuted) {
-      audio.volume = vol;
+    const config = getAudioConfig(currentEventTheme);
+    if (audioRef.current && !isMuted) {
+      audioRef.current.volume = config.volume * (vol / DEFAULT_VOLUME);
     }
-  };
+  }, [currentEventTheme, getAudioConfig, isMuted]);
 
   useImperativeHandle(ref, () => ({
     play,
@@ -278,11 +352,12 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
   const labels = {
     music: language === "id" ? "Musik" : "Music",
     playing: language === "id" ? "Sedang diputar" : "Now playing",
-    default: language === "id" ? "Musik Latar" : "Background Music",
-    event: language === "id" ? "Musik Event" : "Event Music",
     volume: language === "id" ? "Volume" : "Volume",
     clickToPlay: language === "id" ? "Klik untuk putar" : "Click to play",
+    transitioning: language === "id" ? "Beralih..." : "Transitioning...",
   };
+
+  const trackName = language === "id" ? currentTrackName.id : currentTrackName.en;
 
   return (
     <div className="fixed bottom-4 right-4 z-50">
@@ -291,7 +366,7 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
           <Button
             variant="outline"
             size="icon"
-            className="rounded-full h-12 w-12 bg-background/80 backdrop-blur-sm border-primary/30 shadow-lg hover:bg-primary/20 box-glow-hover"
+            className="rounded-full h-12 w-12 bg-background/80 backdrop-blur-sm border-primary/30 shadow-lg hover:bg-primary/20 transition-all duration-300"
             aria-label={labels.music}
           >
             <AnimatePresence mode="wait">
@@ -303,28 +378,39 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
                   exit={{ scale: 0.8, opacity: 0 }}
                   className="relative"
                 >
-                  <Music className="h-5 w-5 text-primary" />
-                  {/* Audio wave animation */}
-                  <motion.div
-                    className="absolute -right-1 -top-1 flex gap-0.5"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                  >
-                    {[...Array(3)].map((_, i) => (
+                  {isTransitioning ? (
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Disc3 className="h-5 w-5 text-primary" />
+                    </motion.div>
+                  ) : (
+                    <>
+                      <Music className="h-5 w-5 text-primary" />
+                      {/* Audio wave animation */}
                       <motion.div
-                        key={i}
-                        className="w-0.5 bg-primary rounded-full"
-                        animate={{
-                          height: [4, 8, 4],
-                        }}
-                        transition={{
-                          duration: 0.5,
-                          repeat: Infinity,
-                          delay: i * 0.15,
-                        }}
-                      />
-                    ))}
-                  </motion.div>
+                        className="absolute -right-1 -top-1 flex gap-0.5"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                      >
+                        {[...Array(3)].map((_, i) => (
+                          <motion.div
+                            key={i}
+                            className="w-0.5 bg-primary rounded-full"
+                            animate={{
+                              height: [4, 8, 4],
+                            }}
+                            transition={{
+                              duration: 0.5,
+                              repeat: Infinity,
+                              delay: i * 0.15,
+                            }}
+                          />
+                        ))}
+                      </motion.div>
+                    </>
+                  )}
                 </motion.div>
               ) : (
                 <motion.div
@@ -369,9 +455,19 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
             {/* Now Playing */}
             <div className="bg-muted/50 rounded-lg p-3">
               <p className="text-xs text-muted-foreground mb-1">{labels.playing}</p>
-              <p className="text-sm font-medium">
-                {currentSource === "event" ? labels.event : labels.default}
-              </p>
+              <div className="flex items-center gap-2">
+                {isTransitioning && (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Disc3 className="h-4 w-4 text-primary" />
+                  </motion.div>
+                )}
+                <p className="text-sm font-medium">
+                  {isTransitioning ? labels.transitioning : trackName}
+                </p>
+              </div>
             </div>
 
             {/* Play/Pause Button */}
@@ -407,6 +503,17 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
                 className="w-full"
               />
             </div>
+
+            {/* Event Theme Indicator */}
+            {isEventActive && (
+              <motion.div
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xs text-center text-muted-foreground border-t pt-2"
+              >
+                🎵 {language === "id" ? "Tema Event Aktif" : "Event Theme Active"}
+              </motion.div>
+            )}
           </div>
         </PopoverContent>
       </Popover>
