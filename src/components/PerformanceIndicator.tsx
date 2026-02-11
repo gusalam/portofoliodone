@@ -12,7 +12,7 @@ import { usePerformance } from "@/hooks/usePerformance";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const PerformanceIndicator = () => {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const {
     isLiteMode,
     setLiteMode,
@@ -25,27 +25,25 @@ const PerformanceIndicator = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const labels = {
-    title: language === "id" ? "Mode Performa" : "Performance Mode",
-    liteMode: language === "id" ? "Mode Ringan" : "Lite Mode",
-    liteModeDesc: language === "id" 
-      ? "Kurangi animasi untuk performa lebih baik" 
-      : "Reduce animations for better performance",
-    fps: "FPS",
-    quality: language === "id" ? "Kualitas" : "Quality",
-    particles: language === "id" ? "Partikel" : "Particles",
-    video: "Video",
-    device: language === "id" ? "Perangkat" : "Device",
-    lowEnd: language === "id" ? "Rendah" : "Low-end",
-    standard: language === "id" ? "Standar" : "Standard",
-    mobile: language === "id" ? "Mobile" : "Mobile",
-    desktop: language === "id" ? "Desktop" : "Desktop",
+    title: t("perf.title"),
+    liteMode: t("perf.liteMode"),
+    liteModeDesc: t("perf.liteModeDesc"),
+    fps: t("perf.fps"),
+    quality: t("perf.quality"),
+    particles: t("perf.particles"),
+    video: t("perf.video"),
+    device: t("perf.device"),
+    lowEnd: t("perf.lowEnd"),
+    standard: t("perf.standard"),
+    mobile: t("perf.mobile"),
+    desktop: t("perf.desktop"),
   };
 
   const qualityLabels = {
-    high: language === "id" ? "Tinggi" : "High",
-    medium: language === "id" ? "Sedang" : "Medium",
-    low: language === "id" ? "Rendah" : "Low",
-    disabled: language === "id" ? "Nonaktif" : "Disabled",
+    high: t("perf.high"),
+    medium: t("perf.medium"),
+    low: t("perf.low"),
+    disabled: t("perf.disabled"),
   };
 
   return (

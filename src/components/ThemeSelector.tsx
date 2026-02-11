@@ -76,10 +76,10 @@
                <span
                  className={`w-3 h-3 rounded-full ${themeColors[theme]}`}
                />
-               <span className="capitalize">{theme}</span>
-               <span className="text-xs text-muted-foreground">
-                 ({themeNames[theme]})
-               </span>
+                <span className="capitalize">{t(`theme.${theme}`)}</span>
+                <span className="text-xs text-muted-foreground">
+                  ({themeNames[theme]})
+                </span>
              </div>
              {!isAutoMode && currentTheme === theme && (
                <Check className="h-4 w-4 text-primary" />

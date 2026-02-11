@@ -113,6 +113,43 @@ const translations = {
     "welcome.musicRequired": "Music is required for the full experience.",
     "welcome.refreshHint": "Please refresh the page if you want to re-enter.",
     
+    // Performance Indicator
+    "perf.title": "Performance Mode",
+    "perf.liteMode": "Lite Mode",
+    "perf.liteModeDesc": "Reduce animations for better performance",
+    "perf.fps": "FPS",
+    "perf.quality": "Quality",
+    "perf.particles": "Particles",
+    "perf.video": "Video",
+    "perf.device": "Device",
+    "perf.lowEnd": "Low-end",
+    "perf.standard": "Standard",
+    "perf.mobile": "Mobile",
+    "perf.desktop": "Desktop",
+    "perf.high": "High",
+    "perf.medium": "Medium",
+    "perf.low": "Low",
+    "perf.disabled": "Disabled",
+    
+    // Music Player
+    "music.music": "Music",
+    "music.playing": "Now playing",
+    "music.volume": "Volume",
+    "music.clickToPlay": "Click to play",
+    "music.transitioning": "Transitioning...",
+    "music.pause": "Pause",
+    "music.play": "Play",
+    "music.eventActive": "Event Theme Active",
+    
+    // Theme Day Names
+    "theme.monday": "Monday",
+    "theme.tuesday": "Tuesday",
+    "theme.wednesday": "Wednesday",
+    "theme.thursday": "Thursday",
+    "theme.friday": "Friday",
+    "theme.saturday": "Saturday",
+    "theme.sunday": "Sunday",
+    
     // About - Values
     "about.value.cleanCode": "Clean Code",
     "about.value.cleanCodeDesc": "Writing maintainable, scalable, and efficient code",
@@ -282,6 +319,43 @@ const translations = {
     "welcome.exit": "Keluar",
     "welcome.musicRequired": "Musik diperlukan untuk pengalaman penuh.",
     "welcome.refreshHint": "Silakan refresh halaman jika ingin masuk kembali.",
+    
+    // Performance Indicator
+    "perf.title": "Mode Performa",
+    "perf.liteMode": "Mode Ringan",
+    "perf.liteModeDesc": "Kurangi animasi untuk performa lebih baik",
+    "perf.fps": "FPS",
+    "perf.quality": "Kualitas",
+    "perf.particles": "Partikel",
+    "perf.video": "Video",
+    "perf.device": "Perangkat",
+    "perf.lowEnd": "Rendah",
+    "perf.standard": "Standar",
+    "perf.mobile": "Mobile",
+    "perf.desktop": "Desktop",
+    "perf.high": "Tinggi",
+    "perf.medium": "Sedang",
+    "perf.low": "Rendah",
+    "perf.disabled": "Nonaktif",
+    
+    // Music Player
+    "music.music": "Musik",
+    "music.playing": "Sedang diputar",
+    "music.volume": "Volume",
+    "music.clickToPlay": "Klik untuk putar",
+    "music.transitioning": "Beralih...",
+    "music.pause": "Jeda",
+    "music.play": "Putar",
+    "music.eventActive": "Tema Event Aktif",
+    
+    // Theme Day Names
+    "theme.monday": "Senin",
+    "theme.tuesday": "Selasa",
+    "theme.wednesday": "Rabu",
+    "theme.thursday": "Kamis",
+    "theme.friday": "Jumat",
+    "theme.saturday": "Sabtu",
+    "theme.sunday": "Minggu",
     
     // About - Values
     "about.value.cleanCode": "Kode Bersih",
