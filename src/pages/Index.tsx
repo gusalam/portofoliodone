@@ -13,7 +13,7 @@ import AdvancedMusicPlayer, { AdvancedMusicPlayerRef } from "@/components/Advanc
 import MatrixBackground from "@/components/MatrixBackground";
 import WelcomeModal from "@/components/WelcomeModal";
 import EventBanner from "@/components/EventBanner";
-import EventCountdown from "@/components/EventCountdown";
+
 import { DayThemeProvider } from "@/hooks/useDayTheme";
 import { EventThemeProvider, useEventTheme } from "@/hooks/useEventTheme";
 import { PerformanceProvider } from "@/hooks/usePerformance";
@@ -64,7 +64,7 @@ const IndexContent = () => {
           <LoadingScreen />
           <Navigation />
           <EventBanner />
-          <EventCountdown />
+          
           <main className="relative z-10 bg-transparent">
             <Hero />
             <About />
