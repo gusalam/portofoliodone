@@ -222,7 +222,7 @@ function crossfadeAudio(
 }
 
 const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { currentEventTheme, isEventActive } = useEventTheme();
   const { isLiteMode } = usePerformance();
 
@@ -430,11 +430,11 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
   }));
 
   const labels = {
-    music: language === "id" ? "Musik" : "Music",
-    playing: language === "id" ? "Sedang diputar" : "Now playing",
-    volume: language === "id" ? "Volume" : "Volume",
-    clickToPlay: language === "id" ? "Klik untuk putar" : "Click to play",
-    transitioning: language === "id" ? "Beralih..." : "Transitioning...",
+    music: t("music.music"),
+    playing: t("music.playing"),
+    volume: t("music.volume"),
+    clickToPlay: t("music.clickToPlay"),
+    transitioning: t("music.transitioning"),
   };
 
   const trackName = language === "id" ? currentTrackName.id : currentTrackName.en;
@@ -559,12 +559,12 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
               {isPlaying ? (
                 <>
                   <VolumeX className="mr-2 h-4 w-4" />
-                  Pause
+                  {t("music.pause")}
                 </>
               ) : (
                 <>
                   <Volume2 className="mr-2 h-4 w-4" />
-                  Play
+                  {t("music.play")}
                 </>
               )}
             </Button>
@@ -591,7 +591,7 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
                 animate={{ opacity: 1, y: 0 }}
                 className="text-xs text-center text-muted-foreground border-t pt-2"
               >
-                🎵 {language === "id" ? "Tema Event Aktif" : "Event Theme Active"}
+                🎵 {t("music.eventActive")}
               </motion.div>
             )}
           </div>
