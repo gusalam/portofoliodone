@@ -11,6 +11,7 @@ import {
   DropdownMenuGroup,
 } from "@/components/ui/dropdown-menu";
 import { useEventTheme, EventThemeType, EVENT_THEMES } from "@/hooks/useEventTheme";
+import { useLanguage } from "@/hooks/useLanguage";
 
 // Color mapping for event themes
 const eventThemeColors: Record<EventThemeType, string> = {
@@ -53,6 +54,7 @@ const globalEvents = EVENT_THEMES.filter(
 
 const EventThemeSelector = () => {
   const { currentEventTheme, isAutoMode, setManualEventTheme, detectedEvent } = useEventTheme();
+  const { t, language } = useLanguage();
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [previewIndex, setPreviewIndex] = useState(0);
   const [countdown, setCountdown] = useState(3);
@@ -145,11 +147,11 @@ const EventThemeSelector = () => {
         <DropdownMenuLabel className="flex items-center justify-between">
           <span className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
-            Event Theme
+            {t("event.title")}
           </span>
           {isAutoMode && !isPreviewMode && (
             <span className="text-xs text-muted-foreground font-normal">
-              (Auto)
+              ({t("event.auto")})
             </span>
           )}
         </DropdownMenuLabel>
@@ -164,7 +166,7 @@ const EventThemeSelector = () => {
                   className={`w-3 h-3 rounded-full ${eventThemeColors[currentPreviewTheme || "default"]} animate-pulse`}
                 />
                 <span className="text-sm font-medium">
-                  {currentPreviewThemeInfo?.nameId || "Loading..."}
+                  {currentPreviewThemeInfo ? (language === "id" ? currentPreviewThemeInfo.nameId : currentPreviewThemeInfo.name) : "Loading..."}
                 </span>
               </div>
               <span className="text-xs text-muted-foreground">
@@ -190,7 +192,7 @@ const EventThemeSelector = () => {
               }}
             >
               <Square className="h-3 w-3 mr-2" />
-              Stop Preview
+              {t("event.stopPreview")}
             </Button>
           </div>
         ) : (
@@ -203,9 +205,9 @@ const EventThemeSelector = () => {
           >
             <Play className="h-4 w-4 text-primary" />
             <div>
-              <span className="font-medium">Preview Semua Theme</span>
+              <span className="font-medium">{t("event.previewAll")}</span>
               <span className="text-xs text-muted-foreground block">
-                Auto-cycle setiap 3 detik
+                {t("event.previewCycle")}
               </span>
             </div>
           </DropdownMenuItem>
@@ -225,10 +227,10 @@ const EventThemeSelector = () => {
           <div className="flex items-center gap-2">
             <RotateCcw className="h-4 w-4" />
             <div>
-              <span>Otomatis</span>
+              <span>{t("event.auto")}</span>
               {detectedEvent !== "default" && (
                 <span className="text-xs text-muted-foreground ml-1">
-                  ({EVENT_THEMES.find((e) => e.id === detectedEvent)?.nameId})
+                  ({language === "id" ? EVENT_THEMES.find((e) => e.id === detectedEvent)?.nameId : EVENT_THEMES.find((e) => e.id === detectedEvent)?.name})
                 </span>
               )}
             </div>
@@ -240,7 +242,7 @@ const EventThemeSelector = () => {
         
         {/* Islamic Events */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Event Islam
+          {t("event.islamicEvents")}
         </DropdownMenuLabel>
         <DropdownMenuGroup>
           {islamicEvents.map((event) => (
@@ -257,7 +259,7 @@ const EventThemeSelector = () => {
                 <span
                   className={`w-3 h-3 rounded-full ${eventThemeColors[event.id]}`}
                 />
-                <span className="text-sm">{event.nameId}</span>
+                <span className="text-sm">{language === "id" ? event.nameId : event.name}</span>
               </div>
               {!isAutoMode && !isPreviewMode && currentEventTheme === event.id && (
                 <Check className="h-4 w-4 text-primary" />
@@ -270,7 +272,7 @@ const EventThemeSelector = () => {
         
         {/* National Events */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Event Nasional
+          {t("event.nationalEvents")}
         </DropdownMenuLabel>
         <DropdownMenuGroup>
           {nationalEvents.map((event) => (
@@ -287,7 +289,7 @@ const EventThemeSelector = () => {
                 <span
                   className={`w-3 h-3 rounded-full ${eventThemeColors[event.id]}`}
                 />
-                <span className="text-sm">{event.nameId}</span>
+                <span className="text-sm">{language === "id" ? event.nameId : event.name}</span>
               </div>
               {!isAutoMode && !isPreviewMode && currentEventTheme === event.id && (
                 <Check className="h-4 w-4 text-primary" />
@@ -300,7 +302,7 @@ const EventThemeSelector = () => {
         
         {/* Global Events */}
         <DropdownMenuLabel className="text-xs text-muted-foreground">
-          Event Global
+          {t("event.globalEvents")}
         </DropdownMenuLabel>
         <DropdownMenuGroup>
           {globalEvents.map((event) => (
@@ -317,7 +319,7 @@ const EventThemeSelector = () => {
                 <span
                   className={`w-3 h-3 rounded-full ${eventThemeColors[event.id]}`}
                 />
-                <span className="text-sm">{event.nameId}</span>
+                <span className="text-sm">{language === "id" ? event.nameId : event.name}</span>
               </div>
               {!isAutoMode && !isPreviewMode && currentEventTheme === event.id && (
                 <Check className="h-4 w-4 text-primary" />
@@ -341,7 +343,7 @@ const EventThemeSelector = () => {
             <span
               className={`w-3 h-3 rounded-full ${eventThemeColors["default"]}`}
             />
-            <span className="text-sm">Default (Harian)</span>
+            <span className="text-sm">{t("event.defaultDaily")}</span>
           </div>
           {!isAutoMode && !isPreviewMode && currentEventTheme === "default" && (
             <Check className="h-4 w-4 text-primary" />

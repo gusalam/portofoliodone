@@ -89,6 +89,30 @@ const translations = {
     // AI Chat
     "ai.assistant": "AI Assistant",
     
+    // Theme Selector
+    "theme.selectTheme": "Select Theme",
+    "theme.auto": "Auto (Based on Day)",
+    "theme.autoLabel": "Auto",
+    
+    // Event Theme Selector
+    "event.title": "Event Theme",
+    "event.auto": "Auto",
+    "event.previewAll": "Preview All Themes",
+    "event.previewCycle": "Auto-cycle every 3 seconds",
+    "event.stopPreview": "Stop Preview",
+    "event.islamicEvents": "Islamic Events",
+    "event.nationalEvents": "National Events",
+    "event.globalEvents": "Global Events",
+    "event.defaultDaily": "Default (Daily)",
+    
+    // Welcome Modal
+    "welcome.title": "Welcome to Tretan Developer Portfolio",
+    "welcome.description": "To continue, please play the background music first.",
+    "welcome.playAndEnter": "Play Music & Enter",
+    "welcome.exit": "Exit",
+    "welcome.musicRequired": "Music is required for the full experience.",
+    "welcome.refreshHint": "Please refresh the page if you want to re-enter.",
+    
     // About - Values
     "about.value.cleanCode": "Clean Code",
     "about.value.cleanCodeDesc": "Writing maintainable, scalable, and efficient code",
@@ -234,6 +258,30 @@ const translations = {
     
     // AI Chat
     "ai.assistant": "Ai asisten",
+    
+    // Theme Selector
+    "theme.selectTheme": "Pilih Tema",
+    "theme.auto": "Otomatis (Sesuai Hari)",
+    "theme.autoLabel": "Otomatis",
+    
+    // Event Theme Selector
+    "event.title": "Event Theme",
+    "event.auto": "Otomatis",
+    "event.previewAll": "Preview Semua Theme",
+    "event.previewCycle": "Auto-cycle setiap 3 detik",
+    "event.stopPreview": "Stop Preview",
+    "event.islamicEvents": "Event Islam",
+    "event.nationalEvents": "Event Nasional",
+    "event.globalEvents": "Event Global",
+    "event.defaultDaily": "Default (Harian)",
+    
+    // Welcome Modal
+    "welcome.title": "Selamat Datang di Portofolio Tretan Developer",
+    "welcome.description": "Untuk melanjutkan, silakan putar musik latar terlebih dahulu.",
+    "welcome.playAndEnter": "Putar Musik & Masuk",
+    "welcome.exit": "Keluar",
+    "welcome.musicRequired": "Musik diperlukan untuk pengalaman penuh.",
+    "welcome.refreshHint": "Silakan refresh halaman jika ingin masuk kembali.",
     
     // About - Values
     "about.value.cleanCode": "Kode Bersih",

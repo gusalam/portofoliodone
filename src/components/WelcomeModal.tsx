@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Play, LogOut } from "lucide-react";
 import { useRef, useEffect } from "react";
 import lockedBg from "@/assets/locked-bg.jpg";
+import { useLanguage } from "@/hooks/useLanguage";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -12,6 +13,7 @@ interface WelcomeModalProps {
 
 const WelcomeModal = ({ open, onAccept, onDecline, showLockedMessage = false }: WelcomeModalProps) => {
   const lockedAudioRef = useRef<HTMLAudioElement>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     if (showLockedMessage && lockedAudioRef.current) {
@@ -60,21 +62,21 @@ const WelcomeModal = ({ open, onAccept, onDecline, showLockedMessage = false }: 
 
           {/* Title */}
            <h1 className="text-2xl md:text-3xl font-orbitron font-bold mb-4 mt-4 gradient-text">
-            Selamat Datang di Portofolio Tretan Developer
+            {t("welcome.title")}
           </h1>
 
           {/* Description */}
           {!showLockedMessage ? (
              <p className="text-muted-foreground font-poppins text-sm md:text-base mb-8 leading-relaxed">
-              Untuk melanjutkan, silakan putar musik latar terlebih dahulu.
+              {t("welcome.description")}
             </p>
           ) : (
             <div className="mb-8">
                <p className="text-destructive font-poppins text-sm md:text-base leading-relaxed">
-                Musik diperlukan untuk pengalaman penuh.
-              </p>
+                {t("welcome.musicRequired")}
+               </p>
                <p className="text-muted-foreground font-poppins text-xs md:text-sm mt-2">
-                Silakan refresh halaman jika ingin masuk kembali.
+                {t("welcome.refreshHint")}
               </p>
             </div>
           )}
@@ -87,7 +89,7 @@ const WelcomeModal = ({ open, onAccept, onDecline, showLockedMessage = false }: 
                  className="w-full py-6 text-base font-poppins font-semibold transition-all duration-300 group bg-primary hover:bg-primary/90 text-primary-foreground"
               >
                 <Play className="mr-2 h-5 w-5 group-hover:scale-110 transition-transform" />
-                Putar Musik & Masuk
+                {t("welcome.playAndEnter")}
               </Button>
               <Button
                 variant="ghost"
@@ -95,7 +97,7 @@ const WelcomeModal = ({ open, onAccept, onDecline, showLockedMessage = false }: 
                  className="w-full py-5 text-muted-foreground hover:text-foreground hover:bg-muted font-poppins transition-all duration-300 border border-border hover:border-primary/50"
               >
                 <LogOut className="mr-2 h-4 w-4" />
-                Keluar
+                {t("welcome.exit")}
               </Button>
             </div>
           )}

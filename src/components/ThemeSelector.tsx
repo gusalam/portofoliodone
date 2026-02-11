@@ -9,9 +9,11 @@
    DropdownMenuTrigger,
  } from "@/components/ui/dropdown-menu";
  import { useDayTheme, DayTheme, themeNames } from "@/hooks/useDayTheme";
+ import { useLanguage } from "@/hooks/useLanguage";
  
  const ThemeSelector = () => {
    const { currentTheme, isAutoMode, setManualTheme, allThemes } = useDayTheme();
+   const { t } = useLanguage();
  
   const themeColors: Record<DayTheme, string> = {
     monday: "bg-[#EF4444]",
@@ -39,14 +41,14 @@
          </Button>
        </DropdownMenuTrigger>
        <DropdownMenuContent align="end" className="w-56">
-         <DropdownMenuLabel className="flex items-center justify-between">
-           <span>Pilih Tema</span>
-           {isAutoMode && (
-             <span className="text-xs text-muted-foreground font-normal">
-               (Otomatis)
-             </span>
-           )}
-         </DropdownMenuLabel>
+        <DropdownMenuLabel className="flex items-center justify-between">
+            <span>{t("theme.selectTheme")}</span>
+            {isAutoMode && (
+              <span className="text-xs text-muted-foreground font-normal">
+                ({t("theme.autoLabel")})
+              </span>
+            )}
+          </DropdownMenuLabel>
          <DropdownMenuSeparator />
          
          {/* Auto Mode Option */}
@@ -54,10 +56,10 @@
            onClick={() => setManualTheme(null)}
            className="flex items-center justify-between cursor-pointer"
          >
-           <div className="flex items-center gap-2">
-             <RotateCcw className="h-4 w-4" />
-             <span>Otomatis (Sesuai Hari)</span>
-           </div>
+            <div className="flex items-center gap-2">
+              <RotateCcw className="h-4 w-4" />
+              <span>{t("theme.auto")}</span>
+            </div>
            {isAutoMode && <Check className="h-4 w-4 text-primary" />}
          </DropdownMenuItem>
          
