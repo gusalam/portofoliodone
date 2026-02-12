@@ -86,6 +86,10 @@ const translations = {
     "footer.rights": "All rights reserved.",
     "footer.quickLinks": "Quick Links",
     
+    // Loading Screen
+    "loading.title": "Initializing Portfolio",
+    "loading.complete": "Complete",
+    
     // AI Chat
     "ai.assistant": "AI Assistant",
     
@@ -292,6 +296,10 @@ const translations = {
     // Footer
     "footer.rights": "Hak cipta dilindungi.",
     "footer.quickLinks": "Tautan Cepat",
+    
+    // Loading Screen
+    "loading.title": "Memulai Portfolio",
+    "loading.complete": "Selesai",
     
     // AI Chat
     "ai.assistant": "Ai asisten",
