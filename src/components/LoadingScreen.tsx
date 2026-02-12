@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const LoadingScreen = () => {
-  const { language } = useLanguage();
+  const { t } = useLanguage();
   const [isVisible, setIsVisible] = useState(true);
   const [progress, setProgress] = useState(0);
 
@@ -46,7 +46,7 @@ const LoadingScreen = () => {
         {/* Loading Text */}
         <div className="space-y-4">
           <h2 className="text-2xl font-orbitron font-bold gradient-text">
-            {language === 'id' ? 'Memulai Portfolio' : 'Initializing Portfolio'}
+            {t("loading.title")}
           </h2>
           
           {/* Progress Bar */}
@@ -58,7 +58,7 @@ const LoadingScreen = () => {
           </div>
           
           <p className="text-muted-foreground font-poppins text-sm">
-            {progress}% {language === 'id' ? 'Selesai' : 'Complete'}
+            {progress}% {t("loading.complete")}
           </p>
         </div>
 
