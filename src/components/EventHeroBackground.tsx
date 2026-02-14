@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState, useEffect, useCallback } from "react";
+import { lazy, Suspense, useMemo, useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEventTheme, EventThemeType } from "@/hooks/useEventTheme";
 import { usePerformance } from "@/hooks/usePerformance";
@@ -613,6 +613,49 @@ const usePreloadAdjacentImages = (currentTheme: EventThemeType) => {
   }, [currentTheme]);
 };
 
+// Sequential video player - cycles through multiple videos
+const VIDEO_SOURCES = ["/hero-video.mp4", "/hero-video-2.mp4", "/hero-video-3.mp4"];
+
+const SequentialVideoPlayer = ({ onVideoLoaded }: { onVideoLoaded?: () => void }) => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hasCalledLoaded = useRef(false);
+
+  const handleEnded = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % VIDEO_SOURCES.length);
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.load();
+    video.play().catch(console.error);
+  }, [currentIndex]);
+
+  const handleLoadedData = useCallback(() => {
+    if (!hasCalledLoaded.current) {
+      hasCalledLoaded.current = true;
+      onVideoLoaded?.();
+    }
+  }, [onVideoLoaded]);
+
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      muted
+      playsInline
+      className="absolute inset-0 w-full h-full object-cover"
+      onEnded={handleEnded}
+      onLoadedData={handleLoadedData}
+      key={currentIndex}
+    >
+      <source src={VIDEO_SOURCES[currentIndex]} type="video/mp4" />
+    </video>
+  );
+};
+
 interface EventHeroBackgroundProps {
   children?: React.ReactNode;
   showDefaultVideo?: boolean;
@@ -688,7 +731,7 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
     <div className="absolute inset-0 z-0 overflow-hidden">
       <AnimatePresence mode="wait">
         {shouldShowVideo ? (
-          /* Default mode: Show background video */
+          /* Default mode: Show background videos in sequence */
           <motion.div
             key="video-bg"
             variants={containerVariants}
@@ -697,16 +740,7 @@ const EventHeroBackground = ({ children, showDefaultVideo = true, onVideoLoaded 
             exit="exit"
             className="absolute inset-0"
           >
-            <video
-              autoPlay
-              loop
-              muted
-              playsInline
-              className="absolute inset-0 w-full h-full object-cover"
-              onLoadedData={onVideoLoaded}
-            >
-              <source src="/hero-video.mp4" type="video/mp4" />
-            </video>
+            <SequentialVideoPlayer onVideoLoaded={onVideoLoaded} />
             {/* Video overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/40 to-background/80" />
           </motion.div>
