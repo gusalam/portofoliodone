@@ -229,6 +229,8 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const crossfadeCleanupRef = useRef<(() => void) | null>(null);
   const previousThemeRef = useRef<EventThemeType | null>(null);
+  const isPlayingRef = useRef(false);
+  const switchAbortRef = useRef<AbortController | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -277,16 +279,17 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
 
   // Switch audio source with crossfade
   const switchAudioSource = useCallback(async (newSrc: string, config: EventAudioConfig) => {
-    if (!audioRef.current || !isPlaying) return;
+    if (!audioRef.current || !isPlayingRef.current) return;
     
     setIsTransitioning(true);
     
-    // Fade out current audio
-    const currentAudio = audioRef.current;
+    // Save reference to old audio for recovery
+    const oldAudio = audioRef.current;
+    const oldSrc = oldAudio.src;
     crossfadeCleanupRef.current?.();
     
-    crossfadeCleanupRef.current = fadeAudio(currentAudio, 0, config.fadeOutDuration, () => {
-      currentAudio.pause();
+    crossfadeCleanupRef.current = fadeAudio(oldAudio, 0, config.fadeOutDuration, () => {
+      oldAudio.pause();
       
       // Create new audio with new source
       const newAudio = new Audio(newSrc);
@@ -302,15 +305,30 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
           setIsTransitioning(false);
         });
       }).catch(() => {
-        setIsTransitioning(false);
+        // Recovery: resume old audio if new one fails
+        console.warn("Failed to play new audio, recovering old audio");
+        audioRef.current = oldAudio;
+        oldAudio.volume = 0;
+        oldAudio.play().then(() => {
+          fadeAudio(oldAudio, isMuted ? 0 : DEFAULT_VOLUME * (volume / DEFAULT_VOLUME), DEFAULT_FADE_DURATION, () => {
+            setIsTransitioning(false);
+          });
+        }).catch(() => {
+          setIsTransitioning(false);
+        });
       });
     });
-  }, [isPlaying, isMuted, volume]);
+  }, [isMuted, volume]);
 
   // Handle event theme changes with crossfade to different audio source
   useEffect(() => {
-    if (!hasUserInteracted || !isPlaying) return;
+    if (!hasUserInteracted || !isPlayingRef.current) return;
     if (previousThemeRef.current === currentEventTheme) return;
+
+    // Abort previous async check
+    switchAbortRef.current?.abort();
+    const abortController = new AbortController();
+    switchAbortRef.current = abortController;
 
     const config = getAudioConfig(currentEventTheme);
     
@@ -321,29 +339,47 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
     const checkAndSwitchAudio = async () => {
       // Check if event-specific audio exists
       const eventAudioExists = await checkAudioExists(config.src);
+      
+      // Abort if theme changed while we were checking
+      if (abortController.signal.aborted) return;
+      
       const targetSrc = eventAudioExists ? config.src : DEFAULT_AUDIO_SRC;
       
       // If source is different, do crossfade switch
       if (targetSrc !== currentAudioSrc) {
         await switchAudioSource(targetSrc, config);
       } else {
-        // Same source, just adjust volume
+        // Same source, just ensure audio is playing and adjust volume
         crossfadeCleanupRef.current?.();
-        if (audioRef.current && !audioRef.current.paused) {
-          setIsTransitioning(true);
-          crossfadeCleanupRef.current = fadeAudio(
-            audioRef.current,
-            isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
-            config.fadeInDuration,
-            () => setIsTransitioning(false)
-          );
+        if (audioRef.current) {
+          if (audioRef.current.paused && isPlayingRef.current) {
+            // Audio stopped unexpectedly, resume it
+            audioRef.current.volume = 0;
+            audioRef.current.play().then(() => {
+              setIsTransitioning(true);
+              crossfadeCleanupRef.current = fadeAudio(
+                audioRef.current!,
+                isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
+                config.fadeInDuration,
+                () => setIsTransitioning(false)
+              );
+            }).catch(console.error);
+          } else if (!audioRef.current.paused) {
+            setIsTransitioning(true);
+            crossfadeCleanupRef.current = fadeAudio(
+              audioRef.current,
+              isMuted ? 0 : config.volume * (volume / DEFAULT_VOLUME),
+              config.fadeInDuration,
+              () => setIsTransitioning(false)
+            );
+          }
         }
       }
     };
 
     checkAndSwitchAudio();
     previousThemeRef.current = currentEventTheme;
-  }, [currentEventTheme, hasUserInteracted, isPlaying, getAudioConfig, isMuted, volume, currentAudioSrc, switchAudioSource]);
+  }, [currentEventTheme, hasUserInteracted, getAudioConfig, isMuted, volume, currentAudioSrc, switchAudioSource]);
 
   const play = useCallback(async () => {
     setHasUserInteracted(true);
@@ -371,6 +407,7 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
     if (audioRef.current) {
       audioRef.current.volume = 0;
       audioRef.current.play().then(() => {
+        isPlayingRef.current = true;
         setIsPlaying(true);
         fadeAudio(
           audioRef.current!,
@@ -387,6 +424,7 @@ const AdvancedMusicPlayer = forwardRef<AdvancedMusicPlayerRef>((_, ref) => {
     if (audioRef.current) {
       fadeAudio(audioRef.current, 0, config.fadeOutDuration, () => {
         audioRef.current?.pause();
+        isPlayingRef.current = false;
         setIsPlaying(false);
       });
     }
