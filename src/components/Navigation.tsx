@@ -3,6 +3,7 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeSelector from "@/components/ThemeSelector";
 import EventThemeSelector from "@/components/EventThemeSelector";
+import WeatherSelector from "@/components/WeatherSelector";
 import LanguageToggle from "@/components/LanguageToggle";
 import PerformanceIndicator from "@/components/PerformanceIndicator";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -59,6 +60,7 @@ const Navigation = () => {
             <LanguageToggle />
             <PerformanceIndicator />
             <EventThemeSelector />
+            <WeatherSelector />
             <ThemeSelector />
             <Button
               variant="default"

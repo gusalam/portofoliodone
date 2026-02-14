@@ -18,6 +18,7 @@ import WeatherEffects from "@/components/WeatherEffects";
 import { DayThemeProvider } from "@/hooks/useDayTheme";
 import { EventThemeProvider, useEventTheme } from "@/hooks/useEventTheme";
 import { PerformanceProvider } from "@/hooks/usePerformance";
+import { WeatherSettingsProvider } from "@/hooks/useWeatherSettings";
 
 // Lazy load event ornaments for performance
 const EventOrnaments = lazy(() => import("@/components/event-ornaments/EventOrnaments"));
@@ -90,7 +91,9 @@ const Index = () => {
     <PerformanceProvider>
       <DayThemeProvider>
         <EventThemeProvider>
-          <IndexContent />
+          <WeatherSettingsProvider>
+            <IndexContent />
+          </WeatherSettingsProvider>
         </EventThemeProvider>
       </DayThemeProvider>
     </PerformanceProvider>
