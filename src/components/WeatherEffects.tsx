@@ -2,25 +2,31 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Volume2, VolumeX, CloudRain, Snowflake, CloudLightning,
-  Settings, Sun, X, Cloud,
+  Settings, Sun, X, Cloud, CloudFog, Wind,
 } from "lucide-react";
 import { useWeather, WeatherEffect, WeatherIntensity } from "@/hooks/useWeather";
 import RainEffect from "./RainEffect";
 import SnowEffect from "./SnowEffect";
 import LightningEffect from "./LightningEffect";
+import FogEffect from "./FogEffect";
+import WindEffect from "./WindEffect";
 
 const WEATHER_LABELS: Record<WeatherEffect, string> = {
   clear: "Cerah",
   rain: "Hujan",
   snow: "Salju",
   thunderstorm: "Badai Petir",
+  fog: "Kabut",
+  wind: "Berangin",
 };
 
-const WEATHER_OPTIONS: { effect: WeatherEffect; icon: typeof CloudRain; label: string }[] = [
+const WEATHER_OPTIONS: { effect: WeatherEffect; icon: React.ComponentType<{ className?: string }>; label: string }[] = [
   { effect: "clear", icon: Sun, label: "Cerah" },
   { effect: "rain", icon: CloudRain, label: "Hujan" },
   { effect: "snow", icon: Snowflake, label: "Salju" },
-  { effect: "thunderstorm", icon: CloudLightning, label: "Badai Petir" },
+  { effect: "thunderstorm", icon: CloudLightning, label: "Petir" },
+  { effect: "fog", icon: CloudFog, label: "Kabut" },
+  { effect: "wind", icon: Wind, label: "Angin" },
 ];
 
 const INTENSITY_OPTIONS: { value: WeatherIntensity; label: string }[] = [
@@ -41,7 +47,8 @@ const WeatherEffects = () => {
   const activeEffect = manualOverride?.effect ?? weather.effect;
   const activeIntensity = manualOverride?.intensity ?? weather.intensity;
   const isActive = activeEffect !== "clear";
-  const ActiveIcon = WEATHER_OPTIONS.find((o) => o.effect === activeEffect)?.icon ?? Cloud;
+  const activeOption = WEATHER_OPTIONS.find((o) => o.effect === activeEffect);
+  const ActiveIcon = activeOption?.icon ?? Cloud;
 
   const handleSelectEffect = (effect: WeatherEffect) => {
     if (effect === "clear") {
@@ -66,6 +73,8 @@ const WeatherEffects = () => {
     setManualOverride(null);
   };
 
+  const hasSound = activeEffect === "rain" || activeEffect === "thunderstorm";
+
   return (
     <>
       {/* Render effects */}
@@ -80,6 +89,8 @@ const WeatherEffects = () => {
             <LightningEffect />
           </>
         )}
+        {activeEffect === "fog" && <FogEffect intensity={activeIntensity} />}
+        {activeEffect === "wind" && <WindEffect intensity={activeIntensity} />}
       </AnimatePresence>
 
       {/* Bottom-left controls */}
@@ -92,7 +103,7 @@ const WeatherEffects = () => {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.2 }}
-              className="p-3 rounded-xl bg-background/80 backdrop-blur-md border border-border/50 shadow-lg min-w-[200px]"
+              className="p-3 rounded-xl bg-background/80 backdrop-blur-md border border-border/50 shadow-lg min-w-[220px]"
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-medium text-foreground">Efek Cuaca</span>
@@ -104,25 +115,25 @@ const WeatherEffects = () => {
                 </button>
               </div>
 
-              {/* Effect options */}
-              <div className="grid grid-cols-2 gap-1.5 mb-3">
+              {/* Effect options - 3 columns for 6 items */}
+              <div className="grid grid-cols-3 gap-1.5 mb-3">
                 {WEATHER_OPTIONS.map(({ effect, icon: Icon, label }) => (
                   <button
                     key={effect}
                     onClick={() => handleSelectEffect(effect)}
-                    className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs transition-colors ${
+                    className={`flex flex-col items-center gap-1 px-2 py-2 rounded-lg text-xs transition-colors ${
                       activeEffect === effect
                         ? "bg-primary text-primary-foreground"
                         : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
-                    <Icon className="w-3 h-3" />
+                    <Icon className="w-4 h-4" />
                     {label}
                   </button>
                 ))}
               </div>
 
-              {/* Intensity slider - only when not clear */}
+              {/* Intensity - only when not clear */}
               {activeEffect !== "clear" && (
                 <div className="mb-3">
                   <span className="text-xs text-muted-foreground mb-1 block">Intensitas</span>
@@ -144,7 +155,7 @@ const WeatherEffects = () => {
                 </div>
               )}
 
-              {/* Auto/manual indicator */}
+              {/* Auto/manual */}
               <button
                 onClick={handleResetToAuto}
                 className={`w-full text-xs px-2.5 py-1.5 rounded-lg transition-colors ${
@@ -161,7 +172,6 @@ const WeatherEffects = () => {
 
         {/* Bottom bar */}
         <div className="flex items-center gap-2">
-          {/* Weather badge */}
           {isActive && (
             <motion.div
               initial={{ opacity: 0, x: -10 }}
@@ -177,8 +187,7 @@ const WeatherEffects = () => {
             </motion.div>
           )}
 
-          {/* Sound toggle */}
-          {(activeEffect === "rain" || activeEffect === "thunderstorm") && (
+          {hasSound && (
             <button
               onClick={() => setSoundEnabled((prev) => !prev)}
               className="p-2 rounded-full bg-background/60 backdrop-blur-sm border border-border/50 text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors"
@@ -188,7 +197,6 @@ const WeatherEffects = () => {
             </button>
           )}
 
-          {/* Settings button */}
           <button
             onClick={() => setSettingsOpen((prev) => !prev)}
             className={`p-2 rounded-full backdrop-blur-sm border border-border/50 transition-colors ${
