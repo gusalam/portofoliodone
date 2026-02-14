@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 export type WeatherIntensity = "none" | "light" | "moderate" | "heavy";
 
-export type WeatherEffect = "clear" | "rain" | "snow" | "thunderstorm";
+export type WeatherEffect = "clear" | "rain" | "snow" | "thunderstorm" | "fog" | "wind";
 
 interface WeatherState {
   effect: WeatherEffect;
@@ -15,15 +15,18 @@ interface WeatherState {
 
 // Open-Meteo WMO Weather codes mapping
 const getWeatherEffect = (code: number): { effect: WeatherEffect; intensity: WeatherIntensity } => {
+  // Fog / Mist (codes 45, 48)
+  if (code === 45) return { effect: "fog", intensity: "moderate" };
+  if (code === 48) return { effect: "fog", intensity: "heavy" }; // depositing rime fog
+
   // Snow
   if (code === 71 || code === 77) return { effect: "snow", intensity: "light" };
   if (code === 73 || code === 85) return { effect: "snow", intensity: "moderate" };
   if (code === 75 || code === 86) return { effect: "snow", intensity: "heavy" };
-  // Freezing drizzle (snow-like)
   if (code === 56) return { effect: "snow", intensity: "light" };
   if (code === 57) return { effect: "snow", intensity: "moderate" };
 
-  // Thunderstorm (rain + lightning)
+  // Thunderstorm
   if (code === 95) return { effect: "thunderstorm", intensity: "heavy" };
   if (code === 96) return { effect: "thunderstorm", intensity: "heavy" };
   if (code === 99) return { effect: "thunderstorm", intensity: "heavy" };
@@ -44,7 +47,7 @@ const getWeatherEffect = (code: number): { effect: WeatherEffect; intensity: Wea
   return { effect: "clear", intensity: "none" };
 };
 
-const POLL_INTERVAL = 10 * 60 * 1000; // 10 minutes
+const POLL_INTERVAL = 10 * 60 * 1000;
 
 export const useWeather = () => {
   const [weather, setWeather] = useState<WeatherState>({
@@ -60,13 +63,21 @@ export const useWeather = () => {
   const fetchWeather = useCallback(async (lat: number, lon: number) => {
     try {
       const res = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+        `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&windspeed_unit=kmh`
       );
       if (!res.ok) throw new Error("Weather API error");
       const data = await res.json();
       const code = data.current_weather?.weathercode as number;
       const temp = data.current_weather?.temperature as number;
-      const { effect, intensity } = getWeatherEffect(code);
+      const windSpeed = data.current_weather?.windspeed as number;
+
+      let { effect, intensity } = getWeatherEffect(code);
+
+      // If clear but windy (>30 km/h), show wind effect
+      if (effect === "clear" && windSpeed > 30) {
+        effect = "wind";
+        intensity = windSpeed > 60 ? "heavy" : windSpeed > 45 ? "moderate" : "light";
+      }
 
       setWeather({
         effect,
