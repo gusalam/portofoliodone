@@ -13,6 +13,8 @@ import AdvancedMusicPlayer, { AdvancedMusicPlayerRef } from "@/components/Advanc
 import MatrixBackground from "@/components/MatrixBackground";
 import WelcomeModal from "@/components/WelcomeModal";
 import EventBanner from "@/components/EventBanner";
+import RainEffect from "@/components/RainEffect";
+import { useWeather } from "@/hooks/useWeather";
 
 import { DayThemeProvider } from "@/hooks/useDayTheme";
 import { EventThemeProvider, useEventTheme } from "@/hooks/useEventTheme";
@@ -26,6 +28,7 @@ const IndexContent = () => {
   const [showLockedMessage, setShowLockedMessage] = useState(false);
   const musicPlayerRef = useRef<AdvancedMusicPlayerRef>(null);
   const { currentEventTheme } = useEventTheme();
+  const { isRaining, intensity } = useWeather();
 
   useEffect(() => {
     // Set dark mode as default
@@ -78,6 +81,7 @@ const IndexContent = () => {
         </>
       )}
       <AdvancedMusicPlayer ref={musicPlayerRef} />
+      <RainEffect isRaining={isRaining} intensity={intensity} />
     </div>
   );
 };
