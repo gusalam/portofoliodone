@@ -1,41 +1,54 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-export type RainIntensity = "none" | "light" | "moderate" | "heavy";
+export type WeatherIntensity = "none" | "light" | "moderate" | "heavy";
+
+export type WeatherEffect = "clear" | "rain" | "snow" | "thunderstorm";
 
 interface WeatherState {
-  isRaining: boolean;
-  intensity: RainIntensity;
+  effect: WeatherEffect;
+  intensity: WeatherIntensity;
   weatherCode: number | null;
   temperature: number | null;
   loading: boolean;
   error: string | null;
 }
 
-// Open-Meteo WMO Weather codes for rain conditions
-const RAIN_CODES: Record<number, RainIntensity> = {
-  51: "light",    // Drizzle: Light
-  53: "moderate", // Drizzle: Moderate
-  55: "heavy",    // Drizzle: Dense
-  56: "light",    // Freezing Drizzle: Light
-  57: "moderate", // Freezing Drizzle: Dense
-  61: "light",    // Rain: Slight
-  63: "moderate", // Rain: Moderate
-  65: "heavy",    // Rain: Heavy
-  66: "light",    // Freezing Rain: Light
-  67: "heavy",    // Freezing Rain: Heavy
-  80: "light",    // Rain showers: Slight
-  81: "moderate", // Rain showers: Moderate
-  82: "heavy",    // Rain showers: Violent
-  95: "heavy",    // Thunderstorm
-  96: "heavy",    // Thunderstorm with slight hail
-  99: "heavy",    // Thunderstorm with heavy hail
+// Open-Meteo WMO Weather codes mapping
+const getWeatherEffect = (code: number): { effect: WeatherEffect; intensity: WeatherIntensity } => {
+  // Snow
+  if (code === 71 || code === 77) return { effect: "snow", intensity: "light" };
+  if (code === 73 || code === 85) return { effect: "snow", intensity: "moderate" };
+  if (code === 75 || code === 86) return { effect: "snow", intensity: "heavy" };
+  // Freezing drizzle (snow-like)
+  if (code === 56) return { effect: "snow", intensity: "light" };
+  if (code === 57) return { effect: "snow", intensity: "moderate" };
+
+  // Thunderstorm (rain + lightning)
+  if (code === 95) return { effect: "thunderstorm", intensity: "heavy" };
+  if (code === 96) return { effect: "thunderstorm", intensity: "heavy" };
+  if (code === 99) return { effect: "thunderstorm", intensity: "heavy" };
+
+  // Rain
+  if (code === 51) return { effect: "rain", intensity: "light" };
+  if (code === 53) return { effect: "rain", intensity: "moderate" };
+  if (code === 55) return { effect: "rain", intensity: "heavy" };
+  if (code === 61) return { effect: "rain", intensity: "light" };
+  if (code === 63) return { effect: "rain", intensity: "moderate" };
+  if (code === 65) return { effect: "rain", intensity: "heavy" };
+  if (code === 66) return { effect: "rain", intensity: "light" };
+  if (code === 67) return { effect: "rain", intensity: "heavy" };
+  if (code === 80) return { effect: "rain", intensity: "light" };
+  if (code === 81) return { effect: "rain", intensity: "moderate" };
+  if (code === 82) return { effect: "rain", intensity: "heavy" };
+
+  return { effect: "clear", intensity: "none" };
 };
 
 const POLL_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 export const useWeather = () => {
   const [weather, setWeather] = useState<WeatherState>({
-    isRaining: false,
+    effect: "clear",
     intensity: "none",
     weatherCode: null,
     temperature: null,
@@ -53,10 +66,10 @@ export const useWeather = () => {
       const data = await res.json();
       const code = data.current_weather?.weathercode as number;
       const temp = data.current_weather?.temperature as number;
-      const intensity = RAIN_CODES[code] || "none";
+      const { effect, intensity } = getWeatherEffect(code);
 
       setWeather({
-        isRaining: intensity !== "none",
+        effect,
         intensity,
         weatherCode: code,
         temperature: temp,
@@ -74,17 +87,13 @@ export const useWeather = () => {
 
   const getLocationAndFetch = useCallback(() => {
     if (!navigator.geolocation) {
-      // Fallback: Jakarta coordinates
       fetchWeather(-6.2088, 106.8456);
       return;
     }
 
     navigator.geolocation.getCurrentPosition(
       (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-      () => {
-        // On denial, fallback to Jakarta
-        fetchWeather(-6.2088, 106.8456);
-      },
+      () => fetchWeather(-6.2088, 106.8456),
       { timeout: 10000, maximumAge: 300000 }
     );
   }, [fetchWeather]);

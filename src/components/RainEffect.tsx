@@ -1,12 +1,7 @@
 import { useEffect, useRef, useCallback, useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RainIntensity } from "@/hooks/useWeather";
+import { WeatherIntensity } from "@/hooks/useWeather";
 import { Volume2, VolumeX } from "lucide-react";
-
-interface RainEffectProps {
-  isRaining: boolean;
-  intensity: RainIntensity;
-}
 
 // Rain config per intensity
 const RAIN_CONFIG = {
@@ -25,7 +20,7 @@ interface RainDrop {
   width: number;
 }
 
-const RainCanvas = memo(({ intensity }: { intensity: RainIntensity }) => {
+const RainCanvas = memo(({ intensity }: { intensity: WeatherIntensity }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const dropsRef = useRef<RainDrop[]>([]);
   const animFrameRef = useRef<number>(0);
@@ -75,7 +70,7 @@ const RainCanvas = memo(({ intensity }: { intensity: RainIntensity }) => {
         ctx.stroke();
 
         d.y += d.speed;
-        d.x += 0.2; // slight wind
+        d.x += 0.2;
 
         if (d.y > canvas.height) {
           d.y = -d.length;
@@ -85,7 +80,6 @@ const RainCanvas = memo(({ intensity }: { intensity: RainIntensity }) => {
 
       animFrameRef.current = requestAnimationFrame(animate);
     };
-
     animate();
 
     return () => {
@@ -105,13 +99,16 @@ const RainCanvas = memo(({ intensity }: { intensity: RainIntensity }) => {
 
 RainCanvas.displayName = "RainCanvas";
 
-const RainEffect = ({ isRaining, intensity }: RainEffectProps) => {
-  const [soundEnabled, setSoundEnabled] = useState(false);
+interface RainEffectProps {
+  intensity: WeatherIntensity;
+  soundEnabled: boolean;
+}
+
+const RainEffect = ({ intensity, soundEnabled }: RainEffectProps) => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Rain sound management
   useEffect(() => {
-    if (!isRaining || !soundEnabled) {
+    if (!soundEnabled) {
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -124,19 +121,15 @@ const RainEffect = ({ isRaining, intensity }: RainEffectProps) => {
       audioRef.current.loop = true;
     }
 
-    // Set volume based on intensity
     const vol = intensity === "heavy" ? 0.3 : intensity === "moderate" ? 0.2 : 0.1;
     audioRef.current.volume = vol;
     audioRef.current.play().catch(() => {});
 
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
+      if (audioRef.current) audioRef.current.pause();
     };
-  }, [isRaining, soundEnabled, intensity]);
+  }, [soundEnabled, intensity]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (audioRef.current) {
@@ -147,37 +140,14 @@ const RainEffect = ({ isRaining, intensity }: RainEffectProps) => {
   }, []);
 
   return (
-    <AnimatePresence>
-      {isRaining && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-          >
-            <RainCanvas intensity={intensity} />
-          </motion.div>
-
-          {/* Sound toggle button */}
-          <motion.button
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-            onClick={() => setSoundEnabled((prev) => !prev)}
-            className="fixed bottom-20 left-4 z-[9999] p-2 rounded-full bg-background/60 backdrop-blur-sm border border-border/50 text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors"
-            title={soundEnabled ? "Matikan suara hujan" : "Nyalakan suara hujan"}
-          >
-            {soundEnabled ? (
-              <Volume2 className="w-4 h-4" />
-            ) : (
-              <VolumeX className="w-4 h-4" />
-            )}
-          </motion.button>
-        </>
-      )}
-    </AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 1.5, ease: "easeInOut" }}
+    >
+      <RainCanvas intensity={intensity} />
+    </motion.div>
   );
 };
 
